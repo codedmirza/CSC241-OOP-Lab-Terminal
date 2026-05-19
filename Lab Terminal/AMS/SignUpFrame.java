@@ -1,0 +1,152 @@
+// SignUpFrame.java
+// Sign-up form. Different fields for user vs admin (admin needs secret key).
+
+import javax.swing.*;
+import java.awt.*;
+
+public class SignUpFrame extends JFrame {
+
+    private AirlineSystem system;
+    private String role;
+    private StartFrame parent;
+
+    private JTextField usernameField, nameField, emailField, phoneField,
+                       addressField, cnicField, cityField, secretKeyField;
+    private JPasswordField passwordField;
+
+    private static final String ADMIN_SECRET_KEY = "AERO2025";
+
+    public SignUpFrame(AirlineSystem system, String role, StartFrame parent) {
+        this.system = system;
+        this.role   = role;
+        this.parent = parent;
+
+        setTitle((role.equals("admin") ? "Admin" : "User") + " Sign Up");
+        setSize(450, role.equals("admin") ? 480 : 520);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override public void windowClosing(java.awt.event.WindowEvent e) {
+                parent.setVisible(true);
+            }
+        });
+
+        buildUI();
+    }
+
+    private void buildUI() {
+        JPanel main = new JPanel(new BorderLayout(10, 10));
+        main.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        JLabel title = new JLabel(
+            (role.equals("admin") ? "Admin" : "User") + " Registration",
+            SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 16));
+        title.setForeground(new Color(30, 60, 120));
+        main.add(title, BorderLayout.NORTH);
+
+        // Form panel
+        JPanel form = new JPanel(new GridBagLayout());
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(4, 4, 4, 4);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill   = GridBagConstraints.HORIZONTAL;
+
+        int row = 0;
+
+        if (role.equals("admin")) {
+            addRow(form, g, row++, "Secret Key:", secretKeyField = new JTextField());
+        }
+        addRow(form, g, row++, "Username:", usernameField = new JTextField());
+        addRow(form, g, row++, "Password:", passwordField = new JPasswordField());
+        addRow(form, g, row++, "Full Name:", nameField  = new JTextField());
+        addRow(form, g, row++, "Email:",     emailField = new JTextField());
+        addRow(form, g, row++, "Phone:",     phoneField = new JTextField());
+        addRow(form, g, row++, "Address:",   addressField = new JTextField());
+
+        if (role.equals("user")) {
+            addRow(form, g, row++, "CNIC:",  cnicField = new JTextField());
+            addRow(form, g, row++, "City:",  cityField = new JTextField());
+        }
+
+        main.add(form, BorderLayout.CENTER);
+
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        JButton signUpBtn = new JButton("Sign Up");
+        signUpBtn.addActionListener(e -> doSignUp());
+        JButton backBtn = new JButton("Back");
+        backBtn.addActionListener(e -> { parent.setVisible(true); dispose(); });
+        buttons.add(signUpBtn);
+        buttons.add(backBtn);
+        main.add(buttons, BorderLayout.SOUTH);
+
+        setContentPane(main);
+    }
+
+    private void addRow(JPanel form, GridBagConstraints g, int row,
+                        String label, JComponent field) {
+        g.gridx = 0; g.gridy = row; g.weightx = 0.3;
+        form.add(new JLabel(label), g);
+        g.gridx = 1; g.weightx = 0.7;
+        form.add(field, g);
+    }
+
+    private void doSignUp() {
+        String u    = usernameField.getText().trim();
+        String p    = new String(passwordField.getPassword()).trim();
+        String n    = nameField.getText().trim();
+        String em   = emailField.getText().trim();
+        String ph   = phoneField.getText().trim();
+        String addr = addressField.getText().trim();
+
+        if (u.isEmpty() || p.isEmpty() || n.isEmpty() || em.isEmpty()) {
+            err("Please fill all required fields.");
+            return;
+        }
+        if (p.length() < 4) { err("Password must be at least 4 characters."); return; }
+
+        // Username uniqueness check
+        if (usernameTaken(u)) { err("Username already exists."); return; }
+
+        if (role.equals("admin")) {
+            if (system.getAdmin() != null) {
+                err("An admin already exists. Only one admin allowed.");
+                return;
+            }
+            String key = secretKeyField.getText().trim();
+            if (!key.equals(ADMIN_SECRET_KEY)) {
+                err("Wrong secret key.");
+                return;
+            }
+            Admin admin = new Admin("A1", n, ph, addr, u, p, em, key);
+            system.setAdmin(admin);
+            JOptionPane.showMessageDialog(this, "Admin account created. Please log in.",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            String cnic = cnicField.getText().trim();
+            String city = cityField.getText().trim();
+            String id   = "U" + (system.getUsers().size() + 1);
+            User user = new User(id, n, ph, addr, u, p, em, cnic, city);
+            system.addUser(user);
+            JOptionPane.showMessageDialog(this, "Account created. Please log in.",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        FileHandler.saveSystem(system);
+        parent.setVisible(true);
+        dispose();
+    }
+
+    private boolean usernameTaken(String u) {
+        for (User user : system.getUsers()) {
+            if (user.getUsername().equalsIgnoreCase(u)) return true;
+        }
+        return system.getAdmin() != null
+            && system.getAdmin().getUsername().equalsIgnoreCase(u);
+    }
+
+    private void err(String msg) {
+        JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
