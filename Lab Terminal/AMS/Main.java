@@ -65,8 +65,9 @@ public class Main {
                              "3520112345671", "Lahore");
         system.addUser(user);
 
-        Pilot pilot = new Pilot("Ahmed Khan", "0301-1112233", "Islamabad", "EMP100", "Morning", "LIC-123", 8);
-        CabinCrew cc = new CabinCrew(, "Sara Ali", "0303-2223344", "Karachi",
+        Pilot pilot = new Pilot("Ahmed Khan", "0301-1112233", "Islamabad",
+                                "EMP100", "Morning", "LIC-123", 8);
+        CabinCrew cc = new CabinCrew("P2", "Sara Ali", "0303-2223344", "Karachi",
                                      "EMP101", "Evening", "Economy");
         system.addCrew(pilot);
         system.addCrew(cc);

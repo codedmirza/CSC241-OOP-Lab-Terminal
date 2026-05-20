@@ -7,10 +7,11 @@ public class Pilot extends Crew {
 
     public Pilot() { super(); }
 
-    public Pilot( String name, String phoneNumber, String address,
+    public Pilot(String id, String name, String phoneNumber, String address,
                  String employeeId, String dutySchedule,
-                 String licenseNumber, int experienceYears) {
-        super(name, phoneNumber, address, employeeId, "Pilot", dutySchedule);
+                 String licenseNumber, int experienceYears) 
+                 {
+        super(id, name, phoneNumber, address, employeeId, "Pilot", dutySchedule);
         this.licenseNumber  = licenseNumber;
         this.experienceYears = experienceYears;
     }

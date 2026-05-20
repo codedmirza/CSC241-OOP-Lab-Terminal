@@ -2,10 +2,9 @@
 // Admin's main window with tabs for each major operation:
 // Airports, Aircrafts, Flights, Crew, Bookings, Refunds, Reports.
 
+import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.util.List;
 
 public class AdminDashboardFrame extends JFrame {
 
@@ -466,11 +465,11 @@ public class AdminDashboardFrame extends JFrame {
                 int yrs;
                 try { yrs = Integer.parseInt(extra2.getText().trim()); }
                 catch (Exception ex) { yrs = 0; }
-                c = new Pilot( name.getText(), phone.getText(), addr.getText(),
+                c = new Pilot(pid, name.getText(), phone.getText(), addr.getText(),
                               empId.getText(), duty.getText(), extra1.getText(), yrs);
                 break;
             case "CabinCrew":
-                c = new CabinCrew( name.getText(), phone.getText(), addr.getText(),
+                c = new CabinCrew(pid, name.getText(), phone.getText(), addr.getText(),
                                   empId.getText(), duty.getText(), extra1.getText());
                 break;
             default:
