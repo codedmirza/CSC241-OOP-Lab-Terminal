@@ -4,7 +4,7 @@
 // Crew does NOT extend Account because employees don't log in to this system.
 
 public abstract class Account extends Person {
-
+    protected String id;       // Unique identifier for the account
     protected String username;
     protected String password;
     protected String email;
@@ -15,6 +15,7 @@ public abstract class Account extends Person {
     public Account(String id, String name, String phoneNumber, String address,
                    String username, String password, String email, String role) {
         super(id, name, phoneNumber, address);
+        this.id = id;
         this.username = username;
         this.password = password;
         this.email    = email;
