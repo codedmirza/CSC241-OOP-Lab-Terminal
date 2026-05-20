@@ -1,8 +1,8 @@
 // SignUpFrame.java
 // Sign-up form. Different fields for user vs admin (admin needs secret key).
 
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class SignUpFrame extends JFrame {
 
@@ -119,7 +119,7 @@ public class SignUpFrame extends JFrame {
                 err("Wrong secret key.");
                 return;
             }
-            Admin admin = new Admin("A1", n, ph, addr, u, p, em, key);
+            Admin admin = new Admin( n, ph, addr, u, p, em, key);
             system.setAdmin(admin);
             JOptionPane.showMessageDialog(this, "Admin account created. Please log in.",
                 "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -127,7 +127,7 @@ public class SignUpFrame extends JFrame {
             String cnic = cnicField.getText().trim();
             String city = cityField.getText().trim();
             String id   = "U" + (system.getUsers().size() + 1);
-            User user = new User(id, n, ph, addr, u, p, em, cnic, city);
+            User user = new User( n, ph, addr, u, p, em, cnic, city);
             system.addUser(user);
             JOptionPane.showMessageDialog(this, "Account created. Please log in.",
                 "Success", JOptionPane.INFORMATION_MESSAGE);

@@ -32,7 +32,7 @@ public class Authentication {
         if (name.isEmpty() || email.isEmpty()) return "Name and email cannot be empty.";
 
         String id = "U" + (system.getUsers().size() + 1);
-        User user = new User(id, name, phone, address, username, password,
+        User user = new User( name, phone, address, username, password,
                              email, cnic, city);
         system.addUser(user);
         return null;
@@ -44,7 +44,7 @@ public class Authentication {
         if (!secretKey.equals(ADMIN_SECRET_KEY)) return "Wrong secret key.";
         if (usernameTaken(username))             return "Username already exists.";
 
-        Admin admin = new Admin("A1", name, phone, address, username,
+        Admin admin = new Admin( name, phone, address, username,
                                 password, email, secretKey);
         system.setAdmin(admin);
         return null;

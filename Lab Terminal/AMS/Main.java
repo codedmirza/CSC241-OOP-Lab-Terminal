@@ -27,7 +27,7 @@ public class Main {
     }
 
     private static void seedDemoData(AirlineSystem system) {
-        Admin admin = new Admin("A1", "Admin User", "0300-1234567",
+        Admin admin = new Admin( "Admin User", "0300-1234567",
                                 "Islamabad", "admin", "admin123",
                                 "admin@airline.com", "AERO2025");
         system.setAdmin(admin);
@@ -60,14 +60,13 @@ public class Main {
         system.addFlight(f1);
         system.addFlight(f2);
 
-        User user = new User("U1", "Faizan Ahmad", "0312-1112233", "Lahore",
+        User user = new User("Faizan Ahmad", "0312-1112233", "Lahore",
                              "faizan", "1234", "faizan@mail.com",
                              "3520112345671", "Lahore");
         system.addUser(user);
 
-        Pilot pilot = new Pilot("P1", "Ahmed Khan", "0301-1112233", "Islamabad",
-                                "EMP100", "Morning", "LIC-123", 8);
-        CabinCrew cc = new CabinCrew("P2", "Sara Ali", "0303-2223344", "Karachi",
+        Pilot pilot = new Pilot("Ahmed Khan", "0301-1112233", "Islamabad", "EMP100", "Morning", "LIC-123", 8);
+        CabinCrew cc = new CabinCrew(, "Sara Ali", "0303-2223344", "Karachi",
                                      "EMP101", "Evening", "Economy");
         system.addCrew(pilot);
         system.addCrew(cc);

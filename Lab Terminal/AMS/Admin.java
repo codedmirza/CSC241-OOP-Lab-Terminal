@@ -8,10 +8,10 @@ public class Admin extends Account {
 
     public Admin() { super(); }
 
-    public Admin(String id, String name, String phoneNumber, String address,
+    public Admin( String name, String phoneNumber, String address,
                  String username, String password, String email,
                  String adminKey) {
-        super(id, name, phoneNumber, address, username, password, email, "admin");
+        super( name, phoneNumber, address, username, password, email, "admin");
         this.adminKey = adminKey;
     }
 

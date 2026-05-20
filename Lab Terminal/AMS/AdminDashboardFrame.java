@@ -466,11 +466,11 @@ public class AdminDashboardFrame extends JFrame {
                 int yrs;
                 try { yrs = Integer.parseInt(extra2.getText().trim()); }
                 catch (Exception ex) { yrs = 0; }
-                c = new Pilot(pid, name.getText(), phone.getText(), addr.getText(),
+                c = new Pilot( name.getText(), phone.getText(), addr.getText(),
                               empId.getText(), duty.getText(), extra1.getText(), yrs);
                 break;
             case "CabinCrew":
-                c = new CabinCrew(pid, name.getText(), phone.getText(), addr.getText(),
+                c = new CabinCrew( name.getText(), phone.getText(), addr.getText(),
                                   empId.getText(), duty.getText(), extra1.getText());
                 break;
             default:
