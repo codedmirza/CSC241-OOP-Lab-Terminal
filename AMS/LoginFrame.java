@@ -41,7 +41,7 @@ public class LoginFrame extends JFrame {
             (role.equals("admin") ? "Admin" : "User") + " Login",
             SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 18));
-        title.setForeground(new Color(30, 60, 120));
+        title.setForeground(new Color(130, 90, 220));
         main.add(title, BorderLayout.NORTH);
 
         JPanel form = new JPanel(new GridLayout(2, 2, 10, 10));

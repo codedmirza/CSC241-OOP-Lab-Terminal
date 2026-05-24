@@ -43,7 +43,7 @@ public class SignUpFrame extends JFrame {
             (role.equals("admin") ? "Admin" : "User") + " Registration",
             SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 16));
-        title.setForeground(new Color(30, 60, 120));
+        title.setForeground(new Color(130, 160, 120));
         main.add(title, BorderLayout.NORTH);
 
         // Form panel
