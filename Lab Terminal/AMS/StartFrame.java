@@ -67,7 +67,7 @@ public class StartFrame extends JFrame {
         center.add(makeButton("USER Login",     e -> openLogin("user")));
         center.add(makeButton("USER SignUp",   e -> openSignUp("user")));
         center.add(makeButton("ADMIN Login",    e -> openLogin("admin")));
-        center.add(makeButton("ADMIN SignUp",  e -> openSignUp("admin")));
+        center.add(makeButton("ADMIN SignUp",  e -> openSignUp("admin")));  // here will be the calling and the respective will open
 
         main.add(center, BorderLayout.CENTER);
 
