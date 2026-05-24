@@ -1,11 +1,7 @@
-// StartFrame.java
-// The very first window. User chooses User Login, User Sign Up, Admin Login,
-// or Admin Sign Up. Each button opens the appropriate frame.
-
-import javax.swing.*;
+// StartFrame.java (Updated - Better Colors + Black Text)
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.*;
 
 public class StartFrame extends JFrame {
 
@@ -15,52 +11,70 @@ public class StartFrame extends JFrame {
         this.system = system;
 
         setTitle("Airline Management & Booking System");
-        setSize(450, 400);
+        setSize(580, 520);                   
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Save data when window closes
+        // Save file/system data when window is closing
         addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override public void windowClosing(java.awt.event.WindowEvent e) {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
                 FileHandler.saveSystem(system);
             }
         });
 
-        buildUI();
+        startUI(); 
     }
 
-    private void buildUI() {
-        JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(new Color(245, 248, 252));
+    private void startUI() {
+        JPanel main = new JPanel(new BorderLayout(10, 10));
+        main.setBackground(new Color(245, 248, 252));   // Light background
 
-        // Title at top
-        JLabel title = new JLabel("Airline Management & Booking System", SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 18));
-        title.setForeground(new Color(30, 60, 120));
-        title.setBorder(BorderFactory.createEmptyBorder(30, 10, 10, 10));
-        main.add(title, BorderLayout.NORTH);
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+        titlePanel.setOpaque(false);
 
-        JLabel subtitle = new JLabel("Welcome — please choose an option", SwingConstants.CENTER);
-        subtitle.setFont(new Font("Arial", Font.PLAIN, 13));
+        JLabel welcome = new JLabel( "WELCOME TO", SwingConstants.CENTER);
 
-        // Buttons in center
-        JPanel center = new JPanel();
-        center.setLayout(new GridLayout(5, 1, 10, 10));
-        center.setBorder(BorderFactory.createEmptyBorder(10, 60, 30, 60));
+        welcome.setFont(new Font("Serif", Font.BOLD, 22)   );
+        welcome.setForeground(new Color(30, 60, 120));
+        welcome.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    // Title
+        JLabel title = new JLabel("______Airline Management & Booking System______", SwingConstants.CENTER);
+        title.setFont(new Font("Times New Roman", Font.BOLD, 22));
+        title.setForeground(new Color(0, 51, 102));     
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+  
+        titlePanel.add(Box.createVerticalStrut(20));
+        titlePanel.add(welcome);
+        titlePanel.add(Box.createVerticalStrut(8));
+        titlePanel.add(title);
+
+        // Add to main panel
+        main.add(titlePanel, BorderLayout.NORTH);
+
+        // Subtitle
+        JLabel subtitle = new JLabel("Choose an option", SwingConstants.CENTER);
+        subtitle.setFont(new Font("Times New Roman", Font.PLAIN, 19));
+
+        // Buttons panel
+        JPanel center = new JPanel(new GridLayout(5, 1, 12, 12));
+        center.setBorder(BorderFactory.createEmptyBorder(10, 60, 40, 60));
         center.setOpaque(false);
 
         center.add(subtitle);
-        center.add(makeButton("User Login",       e -> openLogin("user")));
-        center.add(makeButton("User Sign Up",     e -> openSignUp("user")));
-        center.add(makeButton("Admin Login",      e -> openLogin("admin")));
-        center.add(makeButton("Admin Sign Up",    e -> openSignUp("admin")));
+        center.add(makeButton("USER Login",     e -> openLogin("user")));
+        center.add(makeButton("USER SignUp",   e -> openSignUp("user")));
+        center.add(makeButton("ADMIN Login",    e -> openLogin("admin")));
+        center.add(makeButton("ADMIN SignUp",  e -> openSignUp("admin")));
 
         main.add(center, BorderLayout.CENTER);
 
-        JLabel footer = new JLabel("CSC241 OOP Project", SwingConstants.CENTER);
-        footer.setFont(new Font("Arial", Font.ITALIC, 11));
+        // Footer
+        JLabel footer = new JLabel("BY     Ashar    Usman     Zarak     Faizan", SwingConstants.CENTER);
+        footer.setFont(new Font("Times New Roman", Font.ITALIC, 17));
         footer.setForeground(Color.GRAY);
-        footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
         main.add(footer, BorderLayout.SOUTH);
 
         setContentPane(main);
@@ -68,10 +82,17 @@ public class StartFrame extends JFrame {
 
     private JButton makeButton(String text, ActionListener action) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Arial", Font.PLAIN, 14));
+        b.setFont(new Font("Times New Roman", Font.PLAIN, 15));
         b.setFocusPainted(false);
-        b.setBackground(new Color(100, 140, 200));
-        b.setForeground(Color.WHITE);
+        
+        // IMPROVED COLORS (as per your request)
+        b.setBackground(new Color(230, 240, 255));   // Light blue background
+        b.setForeground(Color.BLACK);                // Black text (exactly as you wanted)
+        b.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(0, 102, 204), 2),
+            BorderFactory.createEmptyBorder(12, 0, 12, 0)
+        ));
+        
         b.addActionListener(action);
         return b;
     }
