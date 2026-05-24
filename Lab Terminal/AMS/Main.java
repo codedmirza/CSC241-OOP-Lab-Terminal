@@ -59,15 +59,15 @@ public class Main {
         a2.setAvailabilityStatus("Assigned");
         system.addFlight(f1);
         system.addFlight(f2);
-// zaki was here
+// zaki was here 2
         User user = new User( "Faizan Ahmad", "0312-1112233", "Lahore",
                              "faizan", "1234", "faizan@mail.com",
                              "3520112345671", "Lahore");
         system.addUser(user);
 
-        Pilot pilot = new Pilot("P1", "Ahmed Khan", "0301-1112233", "Islamabad",
+        Pilot pilot = new Pilot("P1", "Osama Bin Laden", "0301-1112233", "Kabul",
                                 "EMP100", "Morning", "LIC-123", 8);
-        CabinCrew cc = new CabinCrew("P2", "Sara Ali", "0303-2223344", "Karachi",
+        CabinCrew cc = new CabinCrew("P2", "Abu Musab al Zarqawi", "0303-2223344", "Iraq",
                                      "EMP101", "Evening", "Economy");
         system.addCrew(pilot);
         system.addCrew(cc);
