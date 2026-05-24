@@ -23,4 +23,5 @@ public class Main {
         // Launch GUI on Event Dispatch Thread (Swing best practice)
         SwingUtilities.invokeLater(() -> new StartFrame(system).setVisible(true));
     }
+
 }
