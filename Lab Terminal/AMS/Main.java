@@ -59,7 +59,10 @@ public class Main {
         a2.setAvailabilityStatus("Assigned");
         system.addFlight(f1);
         system.addFlight(f2);
+
 // zaki was here 2
+// one last test to check if commit is working fine
+
         User user = new User( "Faizan Ahmad", "0312-1112233", "Lahore",
                              "faizan", "1234", "faizan@mail.com",
                              "3520112345671", "Lahore");
