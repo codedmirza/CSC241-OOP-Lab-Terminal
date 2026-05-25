@@ -95,8 +95,7 @@ public class LoginFrame extends JFrame {
 
         // if wrong ones
         if (acc == null) {
-            JOptionPane.showMessageDialog(this, "Wrong one! Enter again",
-                "Login Failed", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Wrong one! Enter again","Login Failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
         // Success → open dashboard

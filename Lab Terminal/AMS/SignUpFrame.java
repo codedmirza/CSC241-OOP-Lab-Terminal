@@ -23,7 +23,7 @@ public class SignUpFrame extends JFrame {
         this.parent = parent;
 
         setTitle((role.equals("admin") ? "Admin SignUp" : "User SignUp"));  
-        setSize(450, role.equals("admin") ? 550 : 580);
+        setSize(450, role.equals("admin") ? 520 : 560);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -38,19 +38,19 @@ public class SignUpFrame extends JFrame {
 
         // gui method
     private void signupgui() {
-        JPanel main = new JPanel(new BorderLayout(10, 10));
-        main.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        JPanel main = new JPanel(new BorderLayout(8, 8));
+        main.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
         // Title
         JLabel title = new JLabel((role.equals("admin") ? "______Admin SignUp______" : "______User SignUp______"),SwingConstants.CENTER);
-        title.setFont(new Font("Times New Roman", Font.BOLD, 16));
+        title.setFont(new Font("Times New Roman", Font.BOLD, 18));
         title.setForeground(new Color(30, 60, 120));
         main.add(title, BorderLayout.NORTH);
 
         // Form panel
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints g = new GridBagConstraints();
-        g.insets = new Insets(4, 4, 4, 4);
+        g.insets = new Insets(3, 8, 3, 8);
         g.anchor = GridBagConstraints.WEST;
         g.fill   = GridBagConstraints.HORIZONTAL;
 
@@ -73,7 +73,7 @@ public class SignUpFrame extends JFrame {
 
         main.add(form, BorderLayout.CENTER);
 
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         JButton signUpBtn = new JButton("SignUp");
         signUpBtn.addActionListener(e -> doSignUp());
         JButton backBtn = new JButton("Back");
