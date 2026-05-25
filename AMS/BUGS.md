@@ -1,4 +1,0 @@
-1. Firstly the first dashboard  that opens when we start the system form the main method the colors of the buttons are very light that almost matches to the white and bold font JButton title (that include the Admin, User, Signup user and Signup admin)  // Solved
-2. i want to remove the easypaisa payment method form the system
-3. i want to add the laugage limit in the system that is currently not employed or not working (like if user want to enter a laugage weight that is 200kg or 200000kg the system is not validating this user input)
-4. the bokticket window is acting a lil weird if you can see. wen this window pope up the text below id kinda distorted (become fully visible and clear only if i maximize the window)

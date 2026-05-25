@@ -16,13 +16,14 @@ public class SignUpFrame extends JFrame {
 
     private static final String ADMIN_SECRET_KEY = "AERO2025";
 
+    // constructor
     public SignUpFrame(AirlineSystem system, String role, StartFrame parent) {
         this.system = system;
         this.role   = role;
         this.parent = parent;
 
-        setTitle((role.equals("admin") ? "Admin" : "User") + " Sign Up");
-        setSize(450, role.equals("admin") ? 480 : 520);
+        setTitle((role.equals("admin") ? "Admin SignUp" : "User SignUp"));  
+        setSize(450, role.equals("admin") ? 550 : 580);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -32,17 +33,17 @@ public class SignUpFrame extends JFrame {
             }
         });
 
-        buildUI();
+        signupgui();
     }
 
-    private void buildUI() {
+        // gui method
+    private void signupgui() {
         JPanel main = new JPanel(new BorderLayout(10, 10));
         main.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 
-        JLabel title = new JLabel(
-            (role.equals("admin") ? "Admin" : "User") + " Registration",
-            SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 16));
+        // Title
+        JLabel title = new JLabel((role.equals("admin") ? "______Admin SignUp______" : "______User SignUp______"),SwingConstants.CENTER);
+        title.setFont(new Font("Times New Roman", Font.BOLD, 16));
         title.setForeground(new Color(30, 60, 120));
         main.add(title, BorderLayout.NORTH);
 
@@ -73,7 +74,7 @@ public class SignUpFrame extends JFrame {
         main.add(form, BorderLayout.CENTER);
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
-        JButton signUpBtn = new JButton("Sign Up");
+        JButton signUpBtn = new JButton("SignUp");
         signUpBtn.addActionListener(e -> doSignUp());
         JButton backBtn = new JButton("Back");
         backBtn.addActionListener(e -> { parent.setVisible(true); dispose(); });
@@ -84,14 +85,14 @@ public class SignUpFrame extends JFrame {
         setContentPane(main);
     }
 
-    private void addRow(JPanel form, GridBagConstraints g, int row,
-                        String label, JComponent field) {
+    private void addRow(JPanel form, GridBagConstraints g, int row, String label, JComponent field) {
         g.gridx = 0; g.gridy = row; g.weightx = 0.3;
         form.add(new JLabel(label), g);
         g.gridx = 1; g.weightx = 0.7;
         form.add(field, g);
     }
 
+    // sign up validation method
     private void doSignUp() {
         String u    = usernameField.getText().trim();
         String p    = new String(passwordField.getPassword()).trim();
@@ -101,15 +102,16 @@ public class SignUpFrame extends JFrame {
         String addr = addressField.getText().trim();
 
         if (u.isEmpty() || p.isEmpty() || n.isEmpty() || em.isEmpty()) {
-            err("Please fill all required fields.");
+            err("Kindly fill all required fields.");
             return;
         }
-        if (p.length() < 4) { err("Password must be at least 4 characters."); return; }
+        if (p.length() < 4) { err("Pass must be at least 4 characters."); return; }
 
         // Username uniqueness check
         if (usernameTaken(u)) { err("Username already exists."); return; }
 
         if (role.equals("admin")) {
+            
             if (system.getAdmin() != null) {
                 err("An admin already exists. Only one admin allowed.");
                 return;
@@ -121,16 +123,14 @@ public class SignUpFrame extends JFrame {
             }
             Admin admin = new Admin( n, ph, addr, u, p, em, key);
             system.setAdmin(admin);
-            JOptionPane.showMessageDialog(this, "Admin account created. Please log in.",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Admin account created. Please log in.", "Success", JOptionPane.INFORMATION_MESSAGE);
         } else {
             String cnic = cnicField.getText().trim();
             String city = cityField.getText().trim();
-            String id   = "U" + (system.getUsers().size() + 1);
+            
             User user = new User( n, ph, addr, u, p, em, cnic, city);
             system.addUser(user);
-            JOptionPane.showMessageDialog(this, "Account created. Please log in.",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Account created. Please log in.",  "Success", JOptionPane.INFORMATION_MESSAGE);
         }
 
         FileHandler.saveSystem(system);
