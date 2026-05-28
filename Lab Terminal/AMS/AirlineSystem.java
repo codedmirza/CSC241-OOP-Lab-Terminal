@@ -37,10 +37,16 @@ public class AirlineSystem {
     public Admin getAdmin()        { return admin; }
 
     // ---------- Airports ----------
+
     public void addAirport(Airport a) { airports.add(a); }
+
     public Airport findAirport(String code) {
-        for (Airport a : airports) if (a.getAirportCode().equalsIgnoreCase(code)) return a;
-        return null;
+
+            for (Airport a : airports) {
+                 if (a.getAirportCode().equalsIgnoreCase(code)) { return a;}
+            }
+            return null;
+        
     }
     public boolean isAirportInUse(String code) {
         for (Flight f : flights) {
@@ -54,6 +60,7 @@ public class AirlineSystem {
     }
     public List<Airport> getAirports() { return airports; }
 
+    
     // ---------- Aircrafts ----------
     public void addAircraft(Aircraft ac) { aircrafts.add(ac); }
     public Aircraft findAircraft(String id) {

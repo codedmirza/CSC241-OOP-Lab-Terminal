@@ -18,6 +18,7 @@ public abstract class Crew extends Person {
 
     public Crew(String id, String name, String phoneNumber, String address,
                 String employeeId, String role, String dutySchedule) {
+       
         super(id, name, phoneNumber, address);
         this.employeeId = employeeId;
         this.role = role;
@@ -40,12 +41,10 @@ public abstract class Crew extends Person {
     public String getRole()       { return role; }
     public boolean isAvailable()  { return isAvailable; }
 
-    // Each crew type performs different duties (Polymorphism)
     public abstract void performDuty();
 
     @Override
     public String getDetails() {
-        return role + " - " + name + " (Emp: " + employeeId + ")"
-             + (isAvailable ? " [Available]" : " [On Duty]");
+        return role + " - " + name + " (Emp: " + employeeId + ")" + (isAvailable ? " [Available]" : " [On Duty]");
     }
 }

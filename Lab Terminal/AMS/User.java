@@ -16,9 +16,9 @@ public class User extends Account {
         this.bookings = new ArrayList<>();
     }
 
-    public User( String name, String phoneNumber, String address,
-                String username, String password, String email,
+    public User( String name, String phoneNumber, String address, String username, String password, String email,
                 String cnic, String city) {
+       
         super( name, phoneNumber, address, username, password, email, "user");
         this.cnic = cnic;
         this.city = city;

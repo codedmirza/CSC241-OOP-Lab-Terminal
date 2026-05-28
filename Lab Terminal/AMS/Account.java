@@ -12,9 +12,8 @@ public abstract class Account extends Person {
 
     public Account() { super(); }
 
-    public Account(String name, String phoneNumber, String address,
-                   String username, String password, String email, String role) {
-     
+    public Account(String name, String phoneNumber, String address, String username, String password, String email, String role) {
+        super(null, name, phoneNumber, address);
         this.username = username;
         this.password = password;
         this.email    = email;

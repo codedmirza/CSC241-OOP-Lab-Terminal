@@ -33,8 +33,7 @@ public abstract class Person implements Serializable {
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public void setAddress(String address)         { this.address = address; }
 
-    // Every Person must be able to describe themselves (Abstraction)
-    public abstract String getDetails();
+    public abstract String getDetails() ;
 
     @Override
     public String toString() {

@@ -8,7 +8,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class AdminDashboardFrame extends JFrame {
 
-    private Admin admin;
+    private Admin admin; // the logged-in admin user
     private AirlineSystem system;
     private StartFrame startFrame;
 
@@ -17,7 +17,7 @@ public class AdminDashboardFrame extends JFrame {
         this.system     = system;
         this.startFrame = startFrame;
 
-        setTitle("Admin Dashboard - " + admin.getName());
+        setTitle("Admin Dashboard_ " + admin.getName());
         setSize(1000, 650);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -29,63 +29,76 @@ public class AdminDashboardFrame extends JFrame {
             }
         });
 
-        buildUI();
+        AdminGUI();
     }
 
-    private void buildUI() {
+    private void AdminGUI() {
         JPanel main = new JPanel(new BorderLayout());
 
-        // Top bar
+    
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(new Color(30, 60, 120));
         top.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
-        JLabel hello = new JLabel("Admin: " + admin.getName());
+
+        JLabel hello = new JLabel("Admin Dashboard_ " + admin.getName());
         hello.setForeground(Color.WHITE);
-        hello.setFont(new Font("Arial", Font.BOLD, 16));
+        hello.setFont(new Font("Times New Roman", Font.BOLD, 18));
         top.add(hello, BorderLayout.WEST);
 
-        JButton logoutBtn = new JButton("Logout");
-        logoutBtn.addActionListener(e -> {
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        rightPanel.setOpaque(false);
+
+        JButton updateBtn = new JButton("Update Profile");
+        updateBtn.addActionListener(e -> updateAdminProfile());
+
+        JButton deleteBtn = new JButton("Delete Account");
+        deleteBtn.setBackground(new Color(220, 50, 50));
+        deleteBtn.addActionListener(e -> deleteAdminAccount());
+
+        JButton logoutBtun = new JButton("Logout");
+        logoutBtun.addActionListener(e -> {
             admin.logout();
             FileHandler.saveSystem(system);
             startFrame.setVisible(true);
             dispose();
         });
-        top.add(logoutBtn, BorderLayout.EAST);
+
+        rightPanel.add(updateBtn);
+        rightPanel.add(deleteBtn);
+        rightPanel.add(logoutBtun);
+        top.add(rightPanel, BorderLayout.EAST);
         main.add(top, BorderLayout.NORTH);
 
+        // Tabs (aapke purane tabs same rahenge)
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Airports",   buildAirportsTab());
-        tabs.addTab("Aircrafts",  buildAircraftsTab());
-        tabs.addTab("Flights",    buildFlightsTab());
-        tabs.addTab("Crew",       buildCrewTab());
-        tabs.addTab("Bookings",   buildBookingsTab());
-        tabs.addTab("Refunds",    buildRefundsTab());
-        tabs.addTab("Reports",    buildReportsTab());
+        tabs.addTab("Manage Airports",   AirportsTab());
+        tabs.addTab("Manage Aircrafts",  AircraftsTab());
+        tabs.addTab("Manage Flights",    FlightsTab());
+        tabs.addTab("Manage Crew",       CrewTab());
+        tabs.addTab("Manage Bookings",   BookingsTab());
+        tabs.addTab("Manage Refunds",    RefundsTab());
+        tabs.addTab("Reports",           ReportsTab());
 
         main.add(tabs, BorderLayout.CENTER);
         setContentPane(main);
     }
 
-    // ============================================================
-    // AIRPORTS TAB
-    // ============================================================
-    private JPanel buildAirportsTab() {
+    // 1. Managing airports (adding, updating, deleting, listing)
+    private JPanel AirportsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] cols = {"Code", "Name", "City", "Country", "Status"};
-        DefaultTableModel model = new DefaultTableModel(cols, 0) {
+        String[] columns = {"Code", "Name", "City", "Country", "Status"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0) { // Purpose: Data table me hold karna.
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
-        JTable table = new JTable(model);
+        JTable table = new JTable(model); // data ko table me dikhana.
 
         Runnable refresh = () -> {
             model.setRowCount(0);
             for (Airport a : system.getAirports()) {
-                model.addRow(new Object[]{
-                    a.getAirportCode(), a.getName(), a.getCity(),
-                    a.getCountry(), a.getStatus()
+                model.addRow(new Object[]{ a.getAirportCode(), a.getName(), a.getCity(),
+                                           a.getCountry(), a.getStatus()
                 });
             }
         };
@@ -98,34 +111,43 @@ public class AdminDashboardFrame extends JFrame {
         JButton refreshBtn = new JButton("Refresh");
 
         addBtn.addActionListener(e -> {
-            JTextField code = new JTextField(), name = new JTextField(),
-                       city = new JTextField(), country = new JTextField();
+            JTextField code = new JTextField(), name = new JTextField(), city = new JTextField(), country = new JTextField();
+
             Object[] msg = {"Code:", code, "Name:", name, "City:", city, "Country:", country};
-            int r = JOptionPane.showConfirmDialog(this, msg, "Add Airport",
-                JOptionPane.OK_CANCEL_OPTION);
+            int r = JOptionPane.showConfirmDialog(this, msg, "Add a new Airport", JOptionPane.OK_CANCEL_OPTION);
+
             if (r != JOptionPane.OK_OPTION) return;
+
             String c = code.getText().trim().toUpperCase();
+            
             if (c.isEmpty() || system.findAirport(c) != null) {
-                err("Empty or duplicate airport code."); return;
+                err("airport already exists"); return;
             }
-            system.addAirport(new Airport(c, name.getText(), city.getText(),
-                                          country.getText(), "Active"));
+
+            system.addAirport(new Airport(c, name.getText(), city.getText(),country.getText(), "Active"));
             FileHandler.saveSystem(system);
             refresh.run();
         });
+
         updateBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row < 0) { err("Select an airport first."); return; }
+            if (row < 0) { err("Select an airport first in the table."); return; }
+
             String c = (String) model.getValueAt(row, 0);
+
             Airport a = system.findAirport(c);
+
             JTextField name = new JTextField(a.getName()),
                        city = new JTextField(a.getCity()),
                        country = new JTextField(a.getCountry()),
                        status = new JTextField(a.getStatus());
+                       
             Object[] msg = {"Name:", name, "City:", city, "Country:", country, "Status:", status};
-            int r = JOptionPane.showConfirmDialog(this, msg, "Update Airport",
-                JOptionPane.OK_CANCEL_OPTION);
+
+
+            int r = JOptionPane.showConfirmDialog(this, msg, "Update Airport", JOptionPane.OK_CANCEL_OPTION);
             if (r != JOptionPane.OK_OPTION) return;
+
             a.setName(name.getText());
             a.setCity(city.getText());
             a.setCountry(country.getText());
@@ -133,32 +155,37 @@ public class AdminDashboardFrame extends JFrame {
             FileHandler.saveSystem(system);
             refresh.run();
         });
+
         deleteBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row < 0) { err("Select an airport first."); return; }
+            if (row < 0) { err("Select an airport first in the table."); return; }
+            
             String c = (String) model.getValueAt(row, 0);
             if (system.isAirportInUse(c)) {
-                err("Cannot delete: flights are using this airport.");
+                err("Cannot delete as flights are using this airport.");
                 return;
             }
+
             system.removeAirport(c);
             FileHandler.saveSystem(system);
             refresh.run();
         });
+
         refreshBtn.addActionListener(e -> refresh.run());
 
-        buttons.add(addBtn); buttons.add(updateBtn);
-        buttons.add(deleteBtn); buttons.add(refreshBtn);
+        buttons.add(addBtn); 
+        buttons.add(updateBtn);
+        buttons.add(deleteBtn); 
+        buttons.add(refreshBtn);
 
         p.add(new JScrollPane(table), BorderLayout.CENTER);
         p.add(buttons, BorderLayout.SOUTH);
         return p;
     }
 
-    // ============================================================
-    // AIRCRAFTS TAB
-    // ============================================================
-    private JPanel buildAircraftsTab() {
+    // 2. Managing aircrafts (adding, updating status, listing)
+
+    private JPanel AircraftsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -171,9 +198,7 @@ public class AdminDashboardFrame extends JFrame {
         Runnable refresh = () -> {
             model.setRowCount(0);
             for (Aircraft a : system.getAircrafts()) {
-                model.addRow(new Object[]{
-                    a.getAircraftId(), a.getModel(), a.getCapacity(),
-                    a.getAirlineName(), a.getMaintenanceStatus(),
+                model.addRow(new Object[]{ a.getAircraftId(), a.getModel(), a.getCapacity(), a.getAirlineName(), a.getMaintenanceStatus(),
                     a.getAvailabilityStatus()
                 });
             }
@@ -233,7 +258,7 @@ public class AdminDashboardFrame extends JFrame {
     // ============================================================
     // FLIGHTS TAB
     // ============================================================
-    private JPanel buildFlightsTab() {
+    private JPanel FlightsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -366,7 +391,7 @@ public class AdminDashboardFrame extends JFrame {
     // ============================================================
     // CREW TAB
     // ============================================================
-    private JPanel buildCrewTab() {
+    private JPanel CrewTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -484,7 +509,7 @@ public class AdminDashboardFrame extends JFrame {
     // ============================================================
     // BOOKINGS TAB (view all + cancel)
     // ============================================================
-    private JPanel buildBookingsTab() {
+    private JPanel BookingsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -548,7 +573,7 @@ public class AdminDashboardFrame extends JFrame {
     // ============================================================
     // REFUNDS TAB
     // ============================================================
-    private JPanel buildRefundsTab() {
+    private JPanel RefundsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -631,7 +656,7 @@ public class AdminDashboardFrame extends JFrame {
     // ============================================================
     // REPORTS TAB
     // ============================================================
-    private JPanel buildReportsTab() {
+    private JPanel ReportsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -722,6 +747,71 @@ public class AdminDashboardFrame extends JFrame {
              + flightReportText()  + "\n\n"
              + revenueReportText() + "\n\n"
              + refundReportText();
+    }
+
+    private void updateAdminProfile() {
+        JTextField nameField     = new JTextField(admin.getName());
+        JTextField phoneField    = new JTextField(admin.getPhoneNumber() != null ? admin.getPhoneNumber() : "");
+        JTextField addressField  = new JTextField(admin.getAddress() != null ? admin.getAddress() : "");
+        JTextField emailField    = new JTextField(admin.getEmail());
+        JPasswordField passField = new JPasswordField(admin.getPassword());
+
+        Object[] msg = {
+            "Name:",        nameField,
+            "Phone:",       phoneField,
+            "Address:",     addressField,
+            "Email:",       emailField,
+            "New Password:", passField
+        };
+
+        int result = JOptionPane.showConfirmDialog(this, msg, "Update Admin Profile", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result != JOptionPane.OK_OPTION) return;
+
+        String newName  = nameField.getText().trim();
+        String newPhone = phoneField.getText().trim();
+        String newAddr  = addressField.getText().trim();
+        String newEmail = emailField.getText().trim();
+        String newPass  = new String(passField.getPassword()).trim();
+
+        if (newName.isEmpty() || newEmail.isEmpty()) {
+            err("Name and Email cannot be empty.");
+            return;
+        }
+        // Existing method call (Account class se)
+        admin.updateProfile(newName, newPhone, newAddr);
+
+        // Extra fields update
+        admin.setEmail(newEmail);
+        if (!newPass.isEmpty() && newPass.length() >= 4) {
+            admin.setPassword(newPass);
+        }
+
+        FileHandler.saveSystem(system);
+        
+        // Refresh title
+        setTitle("Admin Dashboard - " + admin.getName());
+        JOptionPane.showMessageDialog(this, "Profile updated successfully!",  "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void deleteAdminAccount() {
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "You are about to DELETE the only Admin account.\n" +
+            "Are you ABSOLUTELY sure you want to delete this admin account?", "Delete Admin Account",
+            JOptionPane.YES_NO_OPTION, 
+            JOptionPane.ERROR_MESSAGE);
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        // Delete admin from system
+        system.setAdmin(null);           // Important: system se admin remove
+        FileHandler.saveSystem(system);
+
+        JOptionPane.showMessageDialog(this, "Admin has been deleted. \nYou are now logged out.", "Account Deleted", JOptionPane.INFORMATION_MESSAGE);
+
+        admin.logout();
+        startFrame.setVisible(true);
+        dispose();
     }
 
     private void err(String msg) {
