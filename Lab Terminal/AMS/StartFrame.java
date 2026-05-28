@@ -39,7 +39,7 @@ public class StartFrame extends JFrame {
         welcome.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel title = new JLabel("_________Airline Management & Booking System_________", SwingConstants.CENTER);
-        title.setFont(new Font("Times New Roman", Font.BOLD, 22));
+        title.setFont(new Font("Times New Roman", Font.BOLD,  19));
         title.setForeground(new Color(0, 51, 102));     
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
   
