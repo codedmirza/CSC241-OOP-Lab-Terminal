@@ -101,12 +101,20 @@ public class SignUpFrame extends JFrame {
         String ph   = phoneField.getText().trim();
         String addr = addressField.getText().trim();
 
-        if (u.isEmpty() || p.isEmpty() || n.isEmpty() || em.isEmpty()) {
+        if (u.isEmpty() || p.isEmpty() || n.isEmpty() || em.isEmpty() || ph.isEmpty() || addr.isEmpty()) {
             err("Kindly fill all required fields.");
             return;
         }
         if (p.length() < 4) { err("Pass must be at least 4 characters."); return; }
-
+        if (!em.matches("^[\\w.-]+@[\\w.-]+\\.\\w{2,}$")) {
+        err("Invalid email format.");
+        return;
+        }      
+        
+        if (!ph.matches("\\d{10,15}")) {
+        err("Phone must be 10-15 digits.\nExample: 03001234567");
+        return;
+        }   
         // Username uniqueness check
         if (usernameTaken(u)) { err("Username already exists."); return; }
 
@@ -127,6 +135,15 @@ public class SignUpFrame extends JFrame {
         } else {
             String cnic = cnicField.getText().trim();
             String city = cityField.getText().trim();
+
+        if (cnic.isEmpty() || city.isEmpty()) {
+            err("CNIC and City are required for users!");
+            return;
+        }
+        if (!cnic.matches("\\d{13}")) {
+            err("CNIC must be exactly 13 digits.\nExample: 1234567890123");
+            return;
+        }
             
             User user = new User( n, ph, addr, u, p, em, cnic, city);
             system.addUser(user);

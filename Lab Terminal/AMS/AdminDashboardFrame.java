@@ -82,10 +82,9 @@ public class AdminDashboardFrame extends JFrame {
         main.add(tabs, BorderLayout.CENTER);
         setContentPane(main);
     }
-//_______________________________________________________________________________________________________________________________________________________________________________________________________________
-//_______________________________________________________________________________________________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________________________________________________________________________________________//_______________________________________________________________________________________________________________________________________________________________________________________________________________
    
-// 1. Managing airports (adding, updating, deleting, listing)
+    // 1. Managing airports (adding, updating, deleting, listing)
     private JPanel AirportsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -241,9 +240,7 @@ public class AdminDashboardFrame extends JFrame {
         p.add(buttons, BorderLayout.SOUTH);
         return p;
     }
-
     // 2. Managing aircrafts (adding, updating status, listing)
-
     private JPanel AircraftsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -265,6 +262,7 @@ public class AdminDashboardFrame extends JFrame {
 
         JButton addBtn = new JButton("Add Aircraft");
         JButton updateBtn = new JButton("Update Status");
+        JButton deleteBtn  = new JButton("Delete");
         JButton refreshBtn = new JButton("Refresh");
 
         // Adding the aircraft__________________________________________________
@@ -313,8 +311,7 @@ public class AdminDashboardFrame extends JFrame {
                 break;
                 }
         }   );
-
-
+        // updating the aircraft________________________________________________
         updateBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select an aircraft from the table to update it."); return; }
@@ -336,27 +333,53 @@ public class AdminDashboardFrame extends JFrame {
                 refresh.run();
             }
         });
+        // deleting the aircraft________________________________________________
+        deleteBtn.addActionListener(e -> {
+        int row = table.getSelectedRow();
+        if (row < 0) { 
+            err("Select an aircraft first in the table."); 
+            return; 
+        }
 
+        String aid = (String) model.getValueAt(row, 0);
+        Aircraft a = system.findAircraft(aid);
 
+        // Agar aircraft in use hai (Assigned) to delete nahi karne dena
+        if (a.getAvailabilityStatus().equals("Assigned")) {
+            err("Cannot delete: This aircraft is currently assigned to a flight.");
+            return;
+        }
+
+        // Delete karo
+        system.removeAircraft(aid);          // AirlineSystem ka method call
+        FileHandler.saveSystem(system);
+        refresh.run();
+
+        JOptionPane.showMessageDialog(this, 
+            "Aircraft " + aid + " deleted successfully!", 
+            "Success", JOptionPane.INFORMATION_MESSAGE);
+    });
+ 
         refreshBtn.addActionListener(e -> refresh.run());
 
         JPanel buttons = new JPanel();
-        buttons.add(addBtn); buttons.add(updateBtn); buttons.add(refreshBtn);
+        buttons.add(addBtn); 
+        buttons.add(updateBtn); 
+        buttons.add(deleteBtn); 
+        buttons.add(refreshBtn);
 
         p.add(new JScrollPane(table), BorderLayout.CENTER);
         p.add(buttons, BorderLayout.SOUTH);
         return p;
     }
-
-    // ============================================================
+    // 3. Managing flights (adding, updating status/fare, deleting, listing)
     // FLIGHTS TAB
     // ============================================================
     private JPanel FlightsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] cols = {"Flight ID", "From", "To", "Departure", "Arrival",
-                         "Fare", "Capacity", "Available", "Status"};
+        String[] cols = {"Flight ID", "From", "To", "Departure", "Arrival",  "Fare", "Capacity", "Available", "Status"};
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -365,17 +388,9 @@ public class AdminDashboardFrame extends JFrame {
         Runnable refresh = () -> {
             model.setRowCount(0);
             for (Flight f : system.getFlights()) {
-                model.addRow(new Object[]{
-                    f.getFlightId(),
-                    f.getSource().getCity(),
-                    f.getDestination().getCity(),
-                    f.getDepartureTime(),
-                    f.getArrivalTime(),
-                    f.getFare(),
-                    f.getCapacity(),
-                    f.getAvailableSeatsCount(),
-                    f.getStatus()
-                });
+                model.addRow(new Object[]{ f.getFlightId(), f.getSource().getCity(), f.getDestination().getCity(), f.getDepartureTime(),
+                            f.getArrivalTime(),f.getFare(),f.getCapacity(),f.getAvailableSeatsCount(),f.getStatus()
+                } );
             }
         };
         refresh.run();
@@ -385,42 +400,168 @@ public class AdminDashboardFrame extends JFrame {
         JButton removeBtn = new JButton("Remove");
         JButton refreshBtn = new JButton("Refresh");
 
-        addBtn.addActionListener(e -> openAddFlightDialog(refresh));
-        updateBtn.addActionListener(e -> {
-            int row = table.getSelectedRow();
-            if (row < 0) { err("Select a flight."); return; }
-            String id = (String) model.getValueAt(row, 0);
-            Flight f = system.findFlight(id);
-            JTextField fare = new JTextField(String.valueOf(f.getFare()));
-            String[] statuses = {"Scheduled", "Delayed", "Cancelled", "Completed"};
-            JComboBox<String> statusBox = new JComboBox<>(statuses);
-            statusBox.setSelectedItem(f.getStatus());
-            Object[] msg = {"New Fare:", fare, "Status:", statusBox};
-            int r = JOptionPane.showConfirmDialog(this, msg, "Update Flight",
-                JOptionPane.OK_CANCEL_OPTION);
-            if (r != JOptionPane.OK_OPTION) return;
-            try { f.setFare(Double.parseDouble(fare.getText().trim())); }
-            catch (NumberFormatException ex) { /* keep old */ }
-            f.updateStatus((String) statusBox.getSelectedItem());
-            FileHandler.saveSystem(system);
-            refresh.run();
+        // Adding flights______________________________________________________
+        addBtn.addActionListener(e -> {
+            while (true) {  
+                if (system.getAirports().size() < 2) {
+                    err("Need at least 2 airports first.");
+                    return;
+                }
+                if (system.getAircrafts().isEmpty()) {
+                    err("Need at least 1 aircraft first.");
+                    return;
+                }
+
+                JTextField idField = new JTextField();
+                JComboBox<Airport> sourceBox = new JComboBox<>(system.getAirports().toArray(new Airport[0]));
+                JComboBox<Airport> destinationBox = new JComboBox<>(system.getAirports().toArray(new Airport[0]));
+                JComboBox<Aircraft> aircraftBox = new JComboBox<>();
+                for (Aircraft a : system.getAircrafts()) {
+                    if (a != null && "Available".equalsIgnoreCase(a.getAvailabilityStatus())) {
+                        aircraftBox.addItem(a);
+                    }
+                }
+                if (aircraftBox.getItemCount() == 0) {
+                    err("No available aircrafts.");
+                    return;
+                }
+
+                JTextField depField = new JTextField("2026-06-01 09:00");
+                JTextField arrField = new JTextField("2026-06-01 11:00");
+                JTextField fareField = new JTextField("15000");
+
+                Object[] msg = { "Flight ID:", idField, "Source:", sourceBox, "Destination:", destinationBox, "Aircraft:", aircraftBox,"Departure (YYYY-MM-DD HH:mm):", depField, "Arrival (YYYY-MM-DD HH:mm):", arrField,
+                    "Fare (Rs):", fareField
+                };
+
+                int r = JOptionPane.showConfirmDialog(this, msg, "Add Flight", JOptionPane.OK_CANCEL_OPTION);
+                if (r != JOptionPane.OK_OPTION) return;
+
+                String fid = idField.getText().trim();
+                if (fid.isEmpty() || system.findFlight(fid) != null) {
+                    err("Flight ID cannot be empty or already exists, enter again.");
+                    continue;
+                }
+
+                Airport src = (Airport) sourceBox.getSelectedItem();
+                Airport dst = (Airport) destinationBox.getSelectedItem();
+                if (src == dst) {
+                    err("Source and destination cannot be the same airport!");
+                    continue;
+                }
+                Aircraft ac = (Aircraft) aircraftBox.getSelectedItem();
+
+                double fareVal;
+                try {
+                    fareVal = Double.parseDouble(fareField.getText().trim());
+                } catch (NumberFormatException ex) {
+                    err("Fare must be a valid number!");
+                    continue;
+                }
+                if (fareVal <= 0 || fareVal > 100000) {
+                    err("Fare must be greater than 0 and below 1 lac.");
+                    continue;
+                }
+                String depText = depField.getText().trim();
+                String arrText = arrField.getText().trim();
+
+
+                           
+                java.time.format.DateTimeFormatter format =  java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+                java.time.LocalDateTime depTime;
+                java.time.LocalDateTime arrTime;
+
+                try {
+                    depTime = java.time.LocalDateTime.parse(depText, format);
+                    arrTime = java.time.LocalDateTime.parse(arrText, format);
+
+                } catch (java.time.format.DateTimeParseException ex) {
+                    err("Invalid date/time format. write as 2026-06-01 09:00");
+                    continue;
+                }
+
+                if (!arrTime.isAfter(depTime)) {
+                    err("Arrival time must be after departure time.");
+                    continue;
+                }
+             
+                Flight f = new Flight(fid, src, dst, depText, arrText, fareVal, ac);
+                system.addFlight(f);
+                ac.setAvailabilityStatus("Assigned");
+                FileHandler.saveSystem(system);
+                refresh.run();
+
+                JOptionPane.showMessageDialog(this, "Flight added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                return;   
+            }
         });
+        // Updating flights____________________________________________________
+        updateBtn.addActionListener(e -> {
+                int row = table.getSelectedRow();
+                if (row < 0) { err("Select a flight."); return; }
+
+                String id = (String) model.getValueAt(row, 0);
+                Flight f = system.findFlight(id);
+                    if (f == null) {
+                        err("Flight not found. Please refresh the table.");
+                        refresh.run();
+                        return;
+                    }
+
+                JTextField fare = new JTextField(String.valueOf(f.getFare()));
+                String[] statuses = {"Scheduled", "Delayed", "Cancelled", "Completed"};
+                
+                JComboBox<String> statusBox = new JComboBox<>(statuses);
+                statusBox.setSelectedItem(f.getStatus());
+            
+                Object[] msg = {"New Fare:", fare, "Status:", statusBox};
+                int r = JOptionPane.showConfirmDialog(this, msg, "Update Flight",
+                    JOptionPane.OK_CANCEL_OPTION);
+                if (r != JOptionPane.OK_OPTION) return;
+
+                double newFare;
+            
+                try {
+                    newFare = Double.parseDouble(fare.getText().trim());
+                } catch (NumberFormatException ex) {
+                    err("Fare must be a valid number.");
+                    return;
+                }
+                if (newFare <= 0 || newFare > 100000) {
+                    err("Fare must be greater than 0 and below 1 lac.");
+                    return;
+                }
+                if (statusBox.getSelectedItem() == null) {
+                    err("Select a valid flight status.");
+                    return;
+                }
+                f.updateStatus((String) statusBox.getSelectedItem());
+                FileHandler.saveSystem(system);
+                refresh.run();
+                JOptionPane.showMessageDialog(this, "Flight updated successfully!", "Updated!!", JOptionPane.INFORMATION_MESSAGE);
+              
+        }  );
+        // removing flights___________________________________________________
         removeBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select a flight."); return; }
+
             String id = (String) model.getValueAt(row, 0);
-            int c = JOptionPane.showConfirmDialog(this,
-                "Remove flight " + id + "?", "Confirm",
-                JOptionPane.YES_NO_OPTION);
+            int c = JOptionPane.showConfirmDialog(this,    "Remove flight " + id + "?", "Confirm", JOptionPane.YES_NO_OPTION);
             if (c != JOptionPane.YES_OPTION) return;
+
             Flight f = system.findFlight(id);
             if (f != null && f.getAircraft() != null) {
                 f.getAircraft().setAvailabilityStatus("Available");
             }
+
             system.removeFlight(id);
             FileHandler.saveSystem(system);
             refresh.run();
+            JOptionPane.showMessageDialog(this, "Flight removed successfully!", "Removed!!", JOptionPane.INFORMATION_MESSAGE);
         });
+     
         refreshBtn.addActionListener(e -> refresh.run());
 
         JPanel buttons = new JPanel();
@@ -431,59 +572,7 @@ public class AdminDashboardFrame extends JFrame {
         p.add(buttons, BorderLayout.SOUTH);
         return p;
     }
-
-    private void openAddFlightDialog(Runnable refresh) {
-        if (system.getAirports().size() < 2) {
-            err("Need at least 2 airports first."); return;
-        }
-        if (system.getAircrafts().isEmpty()) {
-            err("Need at least 1 aircraft first."); return;
-        }
-
-        JTextField id = new JTextField();
-        JComboBox<Airport> srcBox = new JComboBox<>(
-            system.getAirports().toArray(new Airport[0]));
-        JComboBox<Airport> dstBox = new JComboBox<>(
-            system.getAirports().toArray(new Airport[0]));
-        JComboBox<Aircraft> acBox = new JComboBox<>();
-        for (Aircraft a : system.getAircrafts()) {
-            if (a.getAvailabilityStatus().equals("Available")) acBox.addItem(a);
-        }
-        if (acBox.getItemCount() == 0) { err("No available aircrafts."); return; }
-        JTextField dep = new JTextField("2026-06-01 09:00");
-        JTextField arr = new JTextField("2026-06-01 11:00");
-        JTextField fare = new JTextField("15000");
-
-        Object[] msg = {"Flight ID:", id, "Source:", srcBox, "Destination:", dstBox,
-                        "Aircraft:", acBox, "Departure:", dep, "Arrival:", arr,
-                        "Fare:", fare};
-        int r = JOptionPane.showConfirmDialog(this, msg, "Add Flight",
-            JOptionPane.OK_CANCEL_OPTION);
-        if (r != JOptionPane.OK_OPTION) return;
-
-        String fid = id.getText().trim();
-        if (fid.isEmpty() || system.findFlight(fid) != null) {
-            err("Empty or duplicate flight ID."); return;
-        }
-        Airport src = (Airport) srcBox.getSelectedItem();
-        Airport dst = (Airport) dstBox.getSelectedItem();
-        if (src == dst) { err("Source and destination cannot be same."); return; }
-        Aircraft ac = (Aircraft) acBox.getSelectedItem();
-        double fareVal;
-        try { fareVal = Double.parseDouble(fare.getText().trim()); }
-        catch (NumberFormatException ex) { err("Invalid fare."); return; }
-
-        Flight f = new Flight(fid, src, dst, dep.getText(), arr.getText(),
-                              fareVal, ac);
-        system.addFlight(f);
-        ac.setAvailabilityStatus("Assigned");
-        FileHandler.saveSystem(system);
-        refresh.run();
-    }
-
-    // ============================================================
-    // CREW TAB
-    // ============================================================
+    // 4. Managing crew (adding, assigning to flights, listing)
     private JPanel CrewTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -508,106 +597,170 @@ public class AdminDashboardFrame extends JFrame {
 
         JButton addBtn    = new JButton("Add Crew");
         JButton assignBtn = new JButton("Assign to Flight");
+        JButton removeBtn = new JButton("Remove Crew");
         JButton refreshBtn = new JButton("Refresh");
 
-        addBtn.addActionListener(e -> openAddCrewDialog(refresh));
+        addBtn.addActionListener(e -> {
+            while (true) {   // ← Galat input pe dobara maangega
+                String[] types = {"Pilot", "CabinCrew", "GroundStaff"};
+                String type = (String) JOptionPane.showInputDialog(this,  "Select Crew Type:", "Add Crew", 
+                    JOptionPane.QUESTION_MESSAGE, null, types, types[0]);
+                if (type == null) return;
+
+                JTextField empIdField = new JTextField();
+                JTextField nameField  = new JTextField();
+                JTextField phoneField = new JTextField();
+                JTextField addrField  = new JTextField();
+                JTextField dutyField  = new JTextField();
+                JTextField extra1 = new JTextField();
+                JTextField extra2 = new JTextField();
+
+                Object[] msg;
+                if (type.equals("Pilot")) {
+                    msg = new Object[]{
+                        "Employee ID:", empIdField, "Name:", nameField, 
+                        "Phone:", phoneField, "Address:", addrField, 
+                        "Duty Schedule:", dutyField,
+                        "License No:", extra1, "Experience (years):", extra2
+                    };
+                } else if (type.equals("CabinCrew")) {
+                    msg = new Object[]{
+                        "Employee ID:", empIdField, "Name:", nameField, 
+                        "Phone:", phoneField, "Address:", addrField, 
+                        "Duty Schedule:", dutyField, "Section:", extra1
+                    };
+                } else {
+                    msg = new Object[]{
+                        "Employee ID:", empIdField, "Name:", nameField, 
+                        "Phone:", phoneField, "Address:", addrField, 
+                        "Duty Schedule:", dutyField, "Department:", extra1
+                    };
+                }
+
+                int r = JOptionPane.showConfirmDialog(this, msg, "Add " + type, JOptionPane.OK_CANCEL_OPTION);
+                if (r != JOptionPane.OK_OPTION) return;
+
+                String empId = empIdField.getText().trim();
+                String name  = nameField.getText().trim();
+                String phone = phoneField.getText().trim();
+                String addr  = addrField.getText().trim();
+                String duty  = dutyField.getText().trim();
+
+                if (empId.isEmpty() || name.isEmpty() || phone.isEmpty() || addr.isEmpty() || duty.isEmpty()) {
+                    err("Employee ID, Name, Phone, Address and Duty Schedule cannot be empty!");
+                    continue;
+                }
+                if (!phone.matches("\\d{10,13}") ) {
+                    err("Phone number must be 10-13 digits only, enter again ");
+                    continue;
+                }
+                if (name.matches(".*\\d.*") || addr.matches(".*\\d.*")) {
+                    err("Name and Address cannot contain numbers, enter again");
+                    continue;
+                }
+
+                //person id ka concept
+                String pid = "P" + (system.getCrewMembers().size() + 1);
+                Crew c;
+
+                if (type.equals("Pilot")) {
+                    int yrs = 0;
+                    try { yrs = Integer.parseInt(extra2.getText().trim()); } catch (Exception ex) {}
+                    if (extra1.getText().trim().isEmpty()) {
+                        err("License Number is required for Pilot!");
+                        continue;
+                    }
+                    c = new Pilot(pid, name, phone, addr, empId, duty, extra1.getText().trim(), yrs);
+                } else if (type.equals("CabinCrew")) {
+                    if (extra1.getText().trim().isEmpty()) {
+                        err("Section is required for Cabin Crew!");
+                        continue;
+                    }
+                    c = new CabinCrew(pid, name, phone, addr, empId, duty, extra1.getText().trim());
+                } else {
+                    if (extra1.getText().trim().isEmpty()) {
+                        err("Department is required for Ground Staff!");
+                        continue;
+                    }
+                    c = new GroundStaff(pid, name, phone, addr, empId, duty, extra1.getText().trim());
+                }
+
+                system.addCrew(c);
+                FileHandler.saveSystem(system);
+                refresh.run();
+
+                JOptionPane.showMessageDialog(this, type + " added successfully!",  "Success", JOptionPane.INFORMATION_MESSAGE);
+                return;  
+            }
+        });
+
         assignBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select a crew member."); return; }
+
             String eid = (String) model.getValueAt(row, 0);
             Crew chosen = null;
+            
             for (Crew c : system.getCrewMembers()) {
                 if (c.getEmployeeId().equals(eid)) { chosen = c; break; }
             }
             if (chosen == null) return;
+            
             if (system.getFlights().isEmpty()) { err("No flights to assign."); return; }
-            Flight f = (Flight) JOptionPane.showInputDialog(this, "Choose flight:",
-                "Assign", JOptionPane.QUESTION_MESSAGE, null,
+
+            Flight f = (Flight) JOptionPane.showInputDialog(this, "Choose flight:",    "Assign", JOptionPane.QUESTION_MESSAGE, null,
                 system.getFlights().toArray(), system.getFlights().get(0));
             if (f == null) return;
+
             f.assignCrew(chosen);
             chosen.assignFlight(f);
             FileHandler.saveSystem(system);
             refresh.run();
         });
+        
+        removeBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) { err("Select a crew member."); return; }
+
+            String eId = (String) model.getValueAt(row, 0);
+            Crew chosen = null;
+            
+            for (Crew c : system.getCrewMembers()) {
+                if (c.getEmployeeId().equals(eId)) { chosen = c; break; }
+            }
+            if (chosen == null) return;
+            if (!chosen.getAssignedFlights().isEmpty()) {
+                err("Cannot remove crew member as he is assigned to a flight. Unassign from flights first.");
+                return;
+            }
+
+            int c = JOptionPane.showConfirmDialog(this, "Remove crew member" + chosen.getName() + "?", "Confirm", JOptionPane.YES_NO_OPTION);
+            if (c != JOptionPane.YES_OPTION) return;
+
+            system.removeCrew(eId);
+            FileHandler.saveSystem(system);
+            refresh.run();
+            JOptionPane.showMessageDialog(this, "Crew member removed successfully!", "Removed!!", JOptionPane.INFORMATION_MESSAGE);
+        });
+
         refreshBtn.addActionListener(e -> refresh.run());
 
         JPanel buttons = new JPanel();
-        buttons.add(addBtn); buttons.add(assignBtn); buttons.add(refreshBtn);
+        buttons.add(addBtn); 
+        buttons.add(assignBtn); 
+        buttons.add(removeBtn);
+        buttons.add(refreshBtn);
 
         p.add(new JScrollPane(table), BorderLayout.CENTER);
         p.add(buttons, BorderLayout.SOUTH);
         return p;
     }
-
-    private void openAddCrewDialog(Runnable refresh) {
-        String[] types = {"Pilot", "CabinCrew", "GroundStaff"};
-        String type = (String) JOptionPane.showInputDialog(this, "Crew type:",
-            "Add Crew", JOptionPane.QUESTION_MESSAGE, null, types, types[0]);
-        if (type == null) return;
-
-        JTextField empId = new JTextField(), name = new JTextField(),
-                   phone = new JTextField(), addr = new JTextField(),
-                   duty  = new JTextField();
-        JTextField extra1 = new JTextField(), extra2 = new JTextField();
-
-        Object[] msg;
-        switch (type) {
-            case "Pilot":
-                msg = new Object[]{
-                    "Employee ID:", empId, "Name:", name, "Phone:", phone,
-                    "Address:", addr, "Duty:", duty,
-                    "License No:", extra1, "Experience years:", extra2
-                };
-                break;
-            case "CabinCrew":
-                msg = new Object[]{
-                    "Employee ID:", empId, "Name:", name, "Phone:", phone,
-                    "Address:", addr, "Duty:", duty, "Section:", extra1
-                };
-                break;
-            default:
-                msg = new Object[]{
-                    "Employee ID:", empId, "Name:", name, "Phone:", phone,
-                    "Address:", addr, "Duty:", duty, "Department:", extra1
-                };
-        }
-        int r = JOptionPane.showConfirmDialog(this, msg, "Add " + type,
-            JOptionPane.OK_CANCEL_OPTION);
-        if (r != JOptionPane.OK_OPTION) return;
-
-        String pid = "P" + (system.getCrewMembers().size() + 1);
-        Crew c;
-        switch (type) {
-            case "Pilot":
-                int yrs;
-                try { yrs = Integer.parseInt(extra2.getText().trim()); }
-                catch (Exception ex) { yrs = 0; }
-                c = new Pilot(pid, name.getText(), phone.getText(), addr.getText(),
-                              empId.getText(), duty.getText(), extra1.getText(), yrs);
-                break;
-            case "CabinCrew":
-                c = new CabinCrew(pid, name.getText(), phone.getText(), addr.getText(),
-                                  empId.getText(), duty.getText(), extra1.getText());
-                break;
-            default:
-                c = new GroundStaff(pid, name.getText(), phone.getText(), addr.getText(),
-                                    empId.getText(), duty.getText(), extra1.getText());
-        }
-        system.addCrew(c);
-        FileHandler.saveSystem(system);
-        refresh.run();
-    }
-
-    // ============================================================
-    // BOOKINGS TAB (view all + cancel)
-    // ============================================================
+    // 5. Managing bookings (viewing, updating status, deleting)
     private JPanel BookingsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] cols = {"Booking ID", "User", "Flight", "Seat", "Date",
-                         "Amount", "Status"};
+        String[] cols = {"Booking ID", "User", "Flight", "Seat", "Date", "Amount", "Status"};
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -616,60 +769,77 @@ public class AdminDashboardFrame extends JFrame {
         Runnable refresh = () -> {
             model.setRowCount(0);
             for (Booking b : system.getBookings()) {
-                model.addRow(new Object[]{
-                    b.getBookingId(),
-                    b.getUser().getName(),
-                    b.getFlight().getFlightId(),
-                    b.getSeat().getSeatNumber(),
-                    b.getBookingDate(),
-                    "Rs " + b.getTotalAmount(),
+                model.addRow(new Object[]{ b.getBookingId(), b.getUser().getName(), b.getFlight().getFlightId(),
+                    b.getSeat().getSeatNumber(), b.getBookingDate(), "Rs " + b.getTotalAmount(),
                     b.getStatus()
                 });
             }
         };
         refresh.run();
-
-        JButton cancelBtn = new JButton("Cancel This Booking");
+            
+        JButton viewBtn   = new JButton("View Ticket");
+        JButton cancelBtn = new JButton("Cancel & Refund");
         JButton refreshBtn = new JButton("Refresh");
+
+        viewBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) { err("Select a booking first."); return; }
+
+            String id = (String) model.getValueAt(row, 0);
+            Booking b = system.findBooking(id);
+            if (b == null || b.getTicket() == null) {
+                err("No ticket available for this booking.");
+                return;
+            }
+
+            JTextArea area = new JTextArea(b.getTicket().viewTicket());
+            area.setEditable(false);
+            area.setFont(new Font("Times New Roman", Font.PLAIN, 14));
+            
+            JOptionPane.showMessageDialog(this, new JScrollPane(area), "Ticket Details - " + id, JOptionPane.PLAIN_MESSAGE);
+        });
 
         cancelBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select a booking."); return; }
+
             String id = (String) model.getValueAt(row, 0);
             Booking b = system.findBooking(id);
             if (b == null) return;
             if (!b.getStatus().equals("Confirmed")) {
                 err("Already cancelled or not active."); return;
             }
-            int c = JOptionPane.showConfirmDialog(this,
-                "Cancel booking " + id + " and refund the user?",
-                "Confirm", JOptionPane.YES_NO_OPTION);
+            
+            int c = JOptionPane.showConfirmDialog(this, "Cancel booking " + id + " and refund the user?",   "Confirm", JOptionPane.YES_NO_OPTION);
             if (c != JOptionPane.YES_OPTION) return;
+
             b.setStatus("Cancelled by Admin");
             b.getSeat().releaseSeat();
+
             if (b.getPayment() != null) b.getPayment().refund();
-            system.addNotification(new Notification(b.getUser(),
-                "Booking " + id + " was cancelled by admin. Refund processed."));
+            system.addNotification(new Notification(b.getUser(), "Booking " + id + " was cancelled by admin. Refund processed."));
             FileHandler.saveSystem(system);
             refresh.run();
-        });
+            JOptionPane.showMessageDialog(this, "Booking cancelled and user refunded.", "Cancelled", JOptionPane.INFORMATION_MESSAGE);
+        } );
+
         refreshBtn.addActionListener(e -> refresh.run());
 
         JPanel buttons = new JPanel();
-        buttons.add(cancelBtn); buttons.add(refreshBtn);
+        buttons.add(viewBtn); 
+        buttons.add(cancelBtn); 
+        buttons.add(refreshBtn);
 
         p.add(new JScrollPane(table), BorderLayout.CENTER);
         p.add(buttons, BorderLayout.SOUTH);
         return p;
     }
-
-    // ============================================================
+    // 6. Managing refund requests (viewing, approving/rejecting)
     private JPanel RefundsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        String[] cols = {"Request ID", "Booking", "User", "Reason",
-                         "Date", "Status"};
+        String[] cols = {"Request ID", "Booking", "User", "Reason", "Date", "Status"};
         DefaultTableModel model = new DefaultTableModel(cols, 0) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
@@ -678,164 +848,196 @@ public class AdminDashboardFrame extends JFrame {
         Runnable refresh = () -> {
             model.setRowCount(0);
             for (RefundRequest r : system.getRefundRequests()) {
-                model.addRow(new Object[]{
-                    r.getRequestId(),
+                model.addRow(new Object[]{  r.getRequestId(), 
                     r.getBooking().getBookingId(),
                     r.getBooking().getUser().getName(),
-                    r.getReason(),
-                    r.getRequestDate(),
-                    r.getStatus()
+                    r.getReason(),    r.getRequestDate(),   r.getStatus()
                 });
             }
         };
         refresh.run();
-
+        JButton viewBtn = new JButton("View Booking Details");
         JButton approveBtn = new JButton("Approve");
         JButton rejectBtn  = new JButton("Reject");
         JButton refreshBtn = new JButton("Refresh");
 
+        viewBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) { err("Select a refund request first."); return; }
+
+            String rid = (String) model.getValueAt(row, 0);
+            RefundRequest req = system.getRefundRequest(rid);   
+            if (req == null) return;
+
+            String details = "Request ID : " + req.getRequestId() + "\n" +
+                            "Booking    : " + req.getBooking().getBookingId() + "\n" +
+                            "User       : " + req.getBooking().getUser().getName() + "\n" +
+                            "Reason     : " + req.getReason() + "\n" +
+                            "Date       : " + req.getRequestDate() + "\n" +
+                            "Status     : " + req.getStatus();
+
+            JTextArea area = new JTextArea(details);
+            area.setEditable(false);
+            JOptionPane.showMessageDialog(this, new JScrollPane(area),  "Refund Request Details", JOptionPane.INFORMATION_MESSAGE);
+        });
+
         approveBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select a request."); return; }
+            
             String rid = (String) model.getValueAt(row, 0);
-            RefundRequest req = findRefund(rid);
+            RefundRequest req = system.getRefundRequest(rid);
             if (req == null || !req.getStatus().equals("Pending")) {
                 err("Request is not pending."); return;
             }
+
             req.approve();
             Booking b = req.getBooking();
             b.setStatus("Refunded");
             b.getSeat().releaseSeat();
+
             if (b.getPayment() != null) b.getPayment().refund();
-            system.addNotification(new Notification(b.getUser(),
-                "Refund APPROVED for booking " + b.getBookingId() + "."));
+            system.addNotification(new Notification(b.getUser(),   "Refund APPROVED for booking " + b.getBookingId() + "."));
             FileHandler.saveSystem(system);
             refresh.run();
+            JOptionPane.showMessageDialog(this, "Refund approved and user notified.", "Approved", JOptionPane.INFORMATION_MESSAGE);
         });
+
         rejectBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select a request."); return; }
+
             String rid = (String) model.getValueAt(row, 0);
-            RefundRequest req = findRefund(rid);
+            RefundRequest req = system.getRefundRequest(rid);
             if (req == null || !req.getStatus().equals("Pending")) {
                 err("Request is not pending."); return;
             }
+            
             req.reject();
             req.getBooking().setStatus("Confirmed");
-            system.addNotification(new Notification(req.getBooking().getUser(),
-                "Refund REJECTED for booking " + req.getBooking().getBookingId() + "."));
+
+            system.addNotification(new Notification(req.getBooking().getUser(),    "Refund REJECTED for booking " + req.getBooking().getBookingId() + "."));
             FileHandler.saveSystem(system);
             refresh.run();
+            JOptionPane.showMessageDialog(this, "Refund rejected and user notified.", "Rejected", JOptionPane.INFORMATION_MESSAGE);
         });
+
         refreshBtn.addActionListener(e -> refresh.run());
 
         JPanel buttons = new JPanel();
-        buttons.add(approveBtn); buttons.add(rejectBtn); buttons.add(refreshBtn);
+        buttons.add(viewBtn);
+        buttons.add(approveBtn); 
+        buttons.add(rejectBtn); 
+        buttons.add(refreshBtn);
 
         p.add(new JScrollPane(table), BorderLayout.CENTER);
         p.add(buttons, BorderLayout.SOUTH);
         return p;
     }
-
-    private RefundRequest findRefund(String rid) {
-        for (RefundRequest r : system.getRefundRequests()) {
-            if (r.getRequestId().equals(rid)) return r;
-        }
-        return null;
-    }
-
+    // 7. Generating reports (bookings, flights, revenue, refunds)
     private JPanel ReportsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         JTextArea area = new JTextArea();
         area.setEditable(false);
-        area.setFont(new Font("Monospaced", Font.PLAIN, 13));
+        area.setFont(new Font("Times New Roman", Font.PLAIN, 14));
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
 
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
         JPanel buttons = new JPanel();
-        buttons.add(reportButton("Bookings",  area, () -> bookingReportText()));
-        buttons.add(reportButton("Flights",   area, () -> flightReportText()));
-        buttons.add(reportButton("Revenue",   area, () -> revenueReportText()));
-        buttons.add(reportButton("Refunds",   area, () -> refundReportText()));
-        buttons.add(reportButton("Full Report", area, () -> fullReportText()));
-
-        p.add(buttons, BorderLayout.NORTH);
+            buttons.add(reportButton("Bookings",  area, () -> bookingReportText()));
+            buttons.add(reportButton("Flights",   area, () -> flightReportText()));
+            buttons.add(reportButton("Revenue",   area, () -> revenueReportText()));
+            buttons.add(reportButton("Refunds",   area, () -> refundReportText()));
+            buttons.add(reportButton("Full Report", area, () -> fullReportText()));
+            buttonPanel.add(buttons);
+        p.add(buttonPanel, BorderLayout.NORTH);
         p.add(new JScrollPane(area), BorderLayout.CENTER);
+
+        area.setText(fullReportText());
         return p;
     }
-
-    private JButton reportButton(String label, JTextArea area,  java.util.function.Supplier<String> producer) {
+   
+    private JButton reportButton(String label, JTextArea area, java.util.function.Supplier<String> producer) {
         JButton b = new JButton(label);
-        b.addActionListener(e -> area.setText(producer.get()));
+        b.addActionListener(e -> {
+            area.setText(producer.get());
+            area.setCaretPosition(0);  
+        });
         return b;
     }
-
     private String bookingReportText() {
-        StringBuilder sb = new StringBuilder("===== BOOKINGS REPORT =====\n\n");
-        if (system.getBookings().isEmpty()) return sb.append("No bookings.\n").toString();
-        for (Booking b : system.getBookings()) sb.append(b.getBookingDetails()).append("\n");
-        sb.append("\nTotal bookings: ").append(system.getBookings().size());
+        StringBuilder sb = new StringBuilder("____________BOOKINGS REPORT____________\n\n");
+        if (system.getBookings().isEmpty()) return sb.append("No bookings found yet.\n").toString();
+
+        for (Booking b : system.getBookings()) {
+            sb.append(b.getBookingDetails()).append("\n");
+        }
+        sb.append("\nTotal Bookings: ").append(system.getBookings().size());
         return sb.toString();
     }
-
     private String flightReportText() {
-        StringBuilder sb = new StringBuilder("===== FLIGHTS REPORT =====\n\n");
-        if (system.getFlights().isEmpty()) return sb.append("No flights.\n").toString();
+        StringBuilder sb = new StringBuilder("____________FLIGHTS REPORT____________\n\n");
+        if (system.getFlights().isEmpty()) return sb.append("No flights available.\n").toString();
+
         for (Flight f : system.getFlights()) {
             int booked = f.getCapacity() - f.getAvailableSeatsCount();
-            double occ = f.getCapacity() == 0 ? 0
-                       : ((double) booked / f.getCapacity()) * 100;
+            double occ = f.getCapacity() == 0 ? 0 : ((double) booked / f.getCapacity()) * 100;
             sb.append(f).append("\n");
-            sb.append(String.format("    Booked: %d/%d (%.1f%%)%n",
-                                    booked, f.getCapacity(), occ));
+            sb.append(String.format("    Booked: %d/%d (%.1f%% occupied)%n", booked, f.getCapacity(), occ));
         }
         return sb.toString();
     }
-
     private String revenueReportText() {
         double total = 0, refunded = 0;
         for (Booking b : system.getBookings()) {
-            if (b.getStatus().equals("Confirmed")) total += b.getTotalAmount();
-            else if (b.getStatus().equals("Refunded")
-                  || b.getStatus().equals("Cancelled by Admin"))
+            if ("Confirmed".equals(b.getStatus())) total += b.getTotalAmount();
+            else if ("Refunded".equals(b.getStatus()) || "Cancelled by Admin".equals(b.getStatus()))
                 refunded += b.getTotalAmount();
         }
-        return "===== REVENUE REPORT =====\n\n"
-             + "Confirmed bookings revenue : Rs " + total + "\n"
-             + "Refunded amount             : Rs " + refunded + "\n"
-             + "Net revenue                 : Rs " + (total - refunded) + "\n";
+        return "____________REVENUE REPORT____________\n\n" +
+               "Confirmed Revenue   : Rs " + total + "\n" +
+               "Refunded Amount     : Rs " + refunded + "\n" +
+               "──────────────────────────────\n" +
+               "NET REVENUE         : Rs " + (total - refunded);
     }
-
     private String refundReportText() {
-        StringBuilder sb = new StringBuilder("===== REFUNDS REPORT =====\n\n");
+        StringBuilder sb = new StringBuilder("____________REFUNDS REPORT____________\n\n");
         if (system.getRefundRequests().isEmpty())
-            return sb.append("No refund requests.\n").toString();
+            return sb.append("No refund requests yet.\n").toString();
+
         int p = 0, a = 0, j = 0;
         for (RefundRequest r : system.getRefundRequests()) {
             sb.append(r).append("\n");
             switch (r.getStatus()) {
-                case "Pending":  p++; break;
+                case "Pending": p++; break;
                 case "Approved": a++; break;
                 case "Rejected": j++; break;
             }
         }
-        sb.append(String.format("\nPending: %d | Approved: %d | Rejected: %d", p, a, j));
+        sb.append("\nSummary → Pending: ").append(p)
+          .append(" | Approved: ").append(a)
+          .append(" | Rejected: ").append(j);
         return sb.toString();
     }
-
     private String fullReportText() {
-        return "########## FULL SYSTEM REPORT ##########\n\n"
-             + "Users      : " + system.getUsers().size() + "\n"
-             + "Airports   : " + system.getAirports().size() + "\n"
-             + "Aircrafts  : " + system.getAircrafts().size() + "\n"
-             + "Flights    : " + system.getFlights().size() + "\n"
-             + "Crew       : " + system.getCrewMembers().size() + "\n\n"
-             + bookingReportText() + "\n\n"
-             + flightReportText()  + "\n\n"
-             + revenueReportText() + "\n\n"
-             + refundReportText();
+        return "___________________FULL SYSTEM REPORT____________________\n\n" +
+               "Users      : " + system.getUsers().size() + "\n" +
+               "Airports   : " + system.getAirports().size() + "\n" +
+               "Aircrafts  : " + system.getAircrafts().size() + "\n" +
+               "Flights    : " + system.getFlights().size() + "\n" +
+               "Crew       : " + system.getCrewMembers().size() + "\n" +
+               "Bookings   : " + system.getBookings().size() + "\n" +
+               "Refunds    : " + system.getRefundRequests().size() + "\n\n" +
+               bookingReportText() + "\n\n" +
+               flightReportText() + "\n\n" +
+               revenueReportText() + "\n\n" +
+               refundReportText();
     }
 
+    // other methods. .. like update admin profile, delete account, error message dialogue, etc.
     private void updateAdminProfile() {
         JTextField nameField     = new JTextField(admin.getName());
         JTextField phoneField    = new JTextField(admin.getPhoneNumber() != null ? admin.getPhoneNumber() : "");
@@ -880,7 +1082,6 @@ public class AdminDashboardFrame extends JFrame {
         setTitle("Admin Dashboard - " + admin.getName());
         JOptionPane.showMessageDialog(this, "Profile updated successfully!",  "Success", JOptionPane.INFORMATION_MESSAGE);
     }
-
     private void deleteAdminAccount() {
         int confirm = JOptionPane.showConfirmDialog(this,
             "You are about to DELETE the only Admin account.\n" +

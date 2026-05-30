@@ -81,8 +81,16 @@ public class LoginFrame extends JFrame {
                 "Missing! ", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        if (u.length() < 3) {
+         err("Username must be at least 3 characters.");
+         return;
+        }
+        if (p.length() < 4) {
+         err("Password must be at least 4 characters.");
+         return;    
+        }
 
-        Account acc = null; // account reference to hold the logged in user/admin
+        Account acc = null; 
         if (role.equals("admin")) {
             Admin a = system.getAdmin();
             if (a != null && a.login(u, p)) acc = a;
@@ -95,7 +103,7 @@ public class LoginFrame extends JFrame {
 
         // if wrong ones
         if (acc == null) {
-            JOptionPane.showMessageDialog(this, "Wrong one! Enter again","Login Failed", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Wrong username or password ! Enter again","Login Failed", JOptionPane.ERROR_MESSAGE);
             return;
         }
         // Success → open dashboard
@@ -106,4 +114,8 @@ public class LoginFrame extends JFrame {
         }
         dispose(); // close login frame after opening dashboard
     }
+
+    private void err(String msg) {
+    JOptionPane.showMessageDialog(this, msg, "Validation Error", JOptionPane.ERROR_MESSAGE);
+}
 }

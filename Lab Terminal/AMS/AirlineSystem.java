@@ -69,6 +69,13 @@ public class AirlineSystem {
     }
     public List<Aircraft> getAircrafts() { return aircrafts; }
 
+    public void removeAircraft(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            return;
+        }
+        aircrafts.removeIf(a -> a.getAircraftId() != null && a.getAircraftId().equalsIgnoreCase(id));
+    }
+
     // ---------- Flights ----------
     public void addFlight(Flight f) { flights.add(f); }
     public Flight findFlight(String id) {
@@ -102,6 +109,13 @@ public class AirlineSystem {
     // ---------- Crew ----------
     public void addCrew(Crew c) { crewMembers.add(c); }
     public List<Crew> getCrewMembers() { return crewMembers; }
+    public void removeCrew(String empId) {
+        crewMembers.removeIf(c ->
+            c != null &&
+            c.getEmployeeId() != null &&
+            c.getEmployeeId().equalsIgnoreCase(empId)
+        );
+    }
 
     // ---------- Bookings ----------
     public void addBooking(Booking b) { bookings.add(b); }
@@ -119,7 +133,10 @@ public class AirlineSystem {
         return r;
     }
     public List<RefundRequest> getRefundRequests() { return refundRequests; }
-
+    public RefundRequest getRefundRequest(String id) {
+        for (RefundRequest r : refundRequests) if (r.getRequestId().equalsIgnoreCase(id)) return r;
+        return null;
+    }
     // ---------- Notifications ----------
     public void addNotification(Notification n) { notifications.add(n); }
     public List<Notification> getNotificationsFor(User user) {
