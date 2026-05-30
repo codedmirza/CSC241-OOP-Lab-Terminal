@@ -2,10 +2,10 @@
 // Logged-in user's main window. Has buttons for each user action.
 // Most actions open dialogs; booking opens a separate frame.
 
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 
 public class UserDashboardFrame extends JFrame {
 
@@ -31,19 +31,18 @@ public class UserDashboardFrame extends JFrame {
             }
         });
 
-        buildUI();
+        UserGUI();
     }
-
-    private void buildUI() {
+    private void UserGUI() {
         JPanel main = new JPanel(new BorderLayout());
 
-        // Top bar
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(new Color(30, 60, 120));
         top.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
-        JLabel hello = new JLabel("Welcome, " + user.getName());
+
+        JLabel hello = new JLabel("Welcome! " + user.getName());
         hello.setForeground(Color.WHITE);
-        hello.setFont(new Font("Arial", Font.BOLD, 16));
+        hello.setFont(new Font("Times New Roman", Font.BOLD, 16));
         top.add(hello, BorderLayout.WEST);
 
         JButton logoutBtn = new JButton("Logout");
@@ -53,23 +52,24 @@ public class UserDashboardFrame extends JFrame {
             startFrame.setVisible(true);
             dispose();
         });
+        //delete and update user buttons to create
         top.add(logoutBtn, BorderLayout.EAST);
         main.add(top, BorderLayout.NORTH);
 
-        // Tabbed pane
+        
         tabs = new JTabbedPane();
-        tabs.addTab("Search Flights",     buildSearchPanel());
-        tabs.addTab("Book Ticket",        buildBookPanel());
-        tabs.addTab("My Bookings",        buildBookingsPanel());
-        tabs.addTab("Cancel / Refund",    buildCancelPanel());
-        tabs.addTab("Notifications",      buildNotificationsPanel());
+        tabs.addTab("Search Flights",     FlightSearchPanel());
+        tabs.addTab("Book Ticket",        BookingPanel());
+        tabs.addTab("My Bookings",        BookingDisplayPanel());
+        tabs.addTab("Cancel & Refund",    CancelBookingPanel());
+        tabs.addTab("Notifications",      NotificationsPanel());
 
         main.add(tabs, BorderLayout.CENTER);
         setContentPane(main);
     }
 
     // ===================== TAB 1: Search flights =====================
-    private JPanel buildSearchPanel() {
+    private JPanel   FlightSearchPanel() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -126,7 +126,7 @@ public class UserDashboardFrame extends JFrame {
     }
 
     // ===================== TAB 2: Book ticket =====================
-    private JPanel buildBookPanel() {
+    private JPanel BookingPanel(){
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -150,7 +150,7 @@ public class UserDashboardFrame extends JFrame {
     }
 
     // ===================== TAB 3: My bookings =====================
-    private JPanel buildBookingsPanel() {
+    private JPanel BookingDisplayPanel() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -205,7 +205,7 @@ public class UserDashboardFrame extends JFrame {
     }
 
     // ===================== TAB 4: Cancel / Refund =====================
-    private JPanel buildCancelPanel() {
+    private JPanel CancelBookingPanel() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -271,7 +271,7 @@ public class UserDashboardFrame extends JFrame {
     }
 
     // ===================== TAB 5: Notifications =====================
-    private JPanel buildNotificationsPanel() {
+    private JPanel NotificationsPanel() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -303,6 +303,8 @@ public class UserDashboardFrame extends JFrame {
         return p;
     }
 
+    
+    
     // Helper: refresh the panel whenever its tab is selected
     private void tabsAddRefreshListener(JPanel panel, Runnable refresh) {
         SwingUtilities.invokeLater(() -> {
@@ -316,7 +318,7 @@ public class UserDashboardFrame extends JFrame {
     public void refreshAllTables() {
         // Re-build to reflect latest data
         getContentPane().removeAll();
-        buildUI();
+        UserGUI();
         revalidate();
         repaint();
     }
