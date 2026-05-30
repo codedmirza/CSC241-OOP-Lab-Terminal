@@ -42,8 +42,8 @@ public class SignUpFrame extends JFrame {
         main.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
         // Title
-        JLabel title = new JLabel((role.equals("admin") ? "______Admin SignUp______" : "______User SignUp______"),SwingConstants.CENTER);
-        title.setFont(new Font("Times New Roman", Font.BOLD, 18));
+        JLabel title = new JLabel((role.equals("admin") ? "     Admin Signup     " : "     User Signup     "),SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setForeground(new Color(30, 60, 120));
         main.add(title, BorderLayout.NORTH);
 

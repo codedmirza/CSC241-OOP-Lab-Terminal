@@ -38,8 +38,8 @@ public class LoginFrame extends JFrame {
         JPanel main = new JPanel(new BorderLayout(10, 10));
         main.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
 
-        JLabel title = new JLabel((role.equals("admin") ? "______Admin Login______" : "______User Login______"), SwingConstants.CENTER); // title of the login frame
-        title.setFont(new Font("Times New Roman", Font.BOLD, 18));
+        JLabel title = new JLabel((role.equals("admin") ? "     Admin Login     " : "     User Login     "), SwingConstants.CENTER); // title of the login frame
+        title.setFont(new Font("Arial", Font.BOLD, 18));
         title.setForeground(new Color(30, 60, 120));
         main.add(title, BorderLayout.NORTH);
 
