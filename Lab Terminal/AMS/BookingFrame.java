@@ -77,8 +77,8 @@ public class BookingFrame extends JFrame {
         g.gridx = 1; mid.add(luggageField, g);
 
         g.gridx = 0; g.gridy = 2; mid.add(new JLabel("Payment method:"), g);
-        paymentCombo = new JComboBox<>(new String[] {
-            "Card", "Cash", "Easypaisa", "Bank Transfer"});
+        paymentCombo = new JComboBox<>(new String[] 
+            { "Card", "Cash", "Bank Transfer"});
         g.gridx = 1; mid.add(paymentCombo, g);
 
         JButton calc = new JButton("Calculate Total");
@@ -145,23 +145,54 @@ public class BookingFrame extends JFrame {
 
     private void updateTotal() {
         if (selectedFlight == null) {
-            JOptionPane.showMessageDialog(this, "Pick a flight first.");
+            JOptionPane.showMessageDialog(this, "Pick a flight first.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
+        
+        // Baggage input structural format check
+        String luggageInput = luggageField.getText().trim();
+        double luggage;
+        try {
+            luggage = Double.parseDouble(luggageInput);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number for baggage weight.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (luggage < 0 || luggage > 20) {
+            JOptionPane.showMessageDialog(this, "Baggage weight must be between 0 kg and 20 kg.", "Baggage Limit Exceeded", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         totalLabel.setText("Total: Rs " + computeTotal());
     }
 
     private void doConfirm() {
         if (selectedFlight == null) {
-            JOptionPane.showMessageDialog(this, "Pick a flight first."); return;
+            JOptionPane.showMessageDialog(this, "Pick a flight first.", "Error", JOptionPane.ERROR_MESSAGE); return;
         }
         if (seatCombo.getItemCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No seats available."); return;
+            JOptionPane.showMessageDialog(this, "No seats available.", "Error", JOptionPane.ERROR_MESSAGE); return;
         }
+        
+        // Comprehensive baggage validation confirmation gate
+        String luggageInput = luggageField.getText().trim();
+        double luggage;
+        try {
+            luggage = Double.parseDouble(luggageInput);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number for baggage weight.", "Invalid Input", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (luggage < 0 || luggage > 20) {
+            JOptionPane.showMessageDialog(this, "Booking rejected! Baggage weight must be between 0 kg and 20 kg.", "Baggage Validation Failed", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         Seat seat = pickedSeat();
         if (seat == null) return;
 
-        double luggage = parseDouble(luggageField.getText(), 0);
         double total = user.calculateFare(selectedFlight, luggage);
 
         PaymentMethod method = pickPaymentMethod();
@@ -212,27 +243,30 @@ public class BookingFrame extends JFrame {
         String choice = (String) paymentCombo.getSelectedItem();
         switch (choice) {
             case "Card": {
-                String num = JOptionPane.showInputDialog(this, "Card Number:");
-                if (num == null) return null;
+                String num = JOptionPane.showInputDialog(this, "Card Number (16 Digits):");
+                if (num == null || num.trim().isEmpty()) return null;
+                
                 String holder = JOptionPane.showInputDialog(this, "Card Holder Name:");
-                if (holder == null) return null;
+                if (holder == null || holder.trim().isEmpty()) return null;
+                
                 String exp = JOptionPane.showInputDialog(this, "Expiry (MM/YY):");
-                if (exp == null) return null;
-                return new CardPayment(num, holder, exp);
+                if (exp == null || exp.trim().isEmpty()) return null;
+                
+                String cvv = JOptionPane.showInputDialog(this, "CVV (3-4 Digits):");
+                if (cvv == null || cvv.trim().isEmpty()) return null;
+                
+                return new CardPayment(num.trim(), holder.trim(), exp.trim(), cvv.trim());
             }
             case "Cash":
                 return new CashPayment();
-            case "Easypaisa": {
-                String num = JOptionPane.showInputDialog(this, "Phone Number:");
-                if (num == null) return null;
-                return new EasypaisaPayment(num);
-            }
             case "Bank Transfer": {
                 String acc = JOptionPane.showInputDialog(this, "Account Number:");
-                if (acc == null) return null;
+                if (acc == null || acc.trim().isEmpty()) return null;
+                
                 String bk  = JOptionPane.showInputDialog(this, "Bank Name:");
-                if (bk == null) return null;
-                return new BankTransferPayment(acc, bk);
+                if (bk == null || bk.trim().isEmpty()) return null;
+                
+                return new BankTransferPayment(acc.trim(), bk.trim());
             }
         }
         return null;

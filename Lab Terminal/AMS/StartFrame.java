@@ -1,4 +1,4 @@
-// StartFrame.java (Updated - Better Colors + Black Text)
+// StartFrame.java
 import java.awt.*;
 import java.awt.event.ActionListener;
 import javax.swing.*;
@@ -11,7 +11,7 @@ public class StartFrame extends JFrame {
         this.system = system;
 
         setTitle("Airline Management & Booking System");
-        setSize(580, 520);                   
+        setSize(580, 560);                   
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -32,65 +32,60 @@ public class StartFrame extends JFrame {
         JPanel titlePanel = new JPanel();
         titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
         titlePanel.setOpaque(false);
-
-        JLabel welcome = new JLabel( "WELCOME TO", SwingConstants.CENTER);
-        welcome.setFont(new Font("Times New Roman", Font.BOLD, 22)   );
-        welcome.setForeground(new Color(30, 60, 120));
-        welcome.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel title = new JLabel("_________Airline Management & Booking System_________", SwingConstants.CENTER);
-        title.setFont(new Font("Times New Roman", Font.BOLD,  19));
-        title.setForeground(new Color(0, 51, 102));     
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
   
-        titlePanel.add(Box.createVerticalStrut(20));
-        titlePanel.add(welcome);
-        titlePanel.add(Box.createVerticalStrut(8));
+        titlePanel.add(Box.createVerticalStrut(35));
+
+        JLabel title = new JLabel("Airline Management & Booking System", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 22));     
+        title.setForeground(new Color(12, 54, 124));     
+        title.setAlignmentX(Component.CENTER_ALIGNMENT);
         titlePanel.add(title);
+
+        titlePanel.add(Box.createVerticalStrut(30));
+
+        JLabel subtitle = new JLabel("Welcome — please choose an option", SwingConstants.CENTER);
+        subtitle.setFont(new Font("Arial", Font.PLAIN, 18));
+        subtitle.setForeground(Color.BLACK);
+        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        titlePanel.add(subtitle);
 
         main.add(titlePanel, BorderLayout.NORTH);
 
-        JLabel subtitle = new JLabel("Choose an option", SwingConstants.CENTER);
-        subtitle.setFont(new Font("Times New Roman", Font.PLAIN, 19));
-
-        JPanel center = new JPanel(new GridLayout(5, 1, 12, 12));
-        center.setBorder(BorderFactory.createEmptyBorder(10, 60, 40, 60));
+        JPanel center = new JPanel(new GridLayout(4, 1, 15, 15));
+        center.setBorder(BorderFactory.createEmptyBorder(20, 50, 30, 50));
         center.setOpaque(false);
-        center.add(subtitle);
 
-            // USERS BUTTONS
-        JButton userLoginButton = makeButton("USER Login");
+        JButton userLoginButton = makeButton("User Login");
         userLoginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 openLogin("user");
             }
-        } );
+        });
       
-        JButton userSignupButton = makeButton("USER SignUp");
+        JButton userSignupButton = makeButton("User Sign Up");
         userSignupButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 openSignUp("user");
-                }
-            } );
+            }
+        });
             
-            // ADMINS BUTTONS
-        JButton adminLoginButton = makeButton("ADMIN Login");
+        JButton adminLoginButton = makeButton("Admin Login");
         adminLoginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 openLogin("admin");
             }
-        }  );
+        });
 
-        JButton adminSignupButton = makeButton("ADMIN SignUp");
+        JButton adminSignupButton = makeButton("Admin Sign Up");
         adminSignupButton.addActionListener(new ActionListener() {
-        @Override 
-        public void actionPerformed(java.awt.event.ActionEvent e) {
-            openSignUp("admin");
-        }
-        } );
+            @Override 
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                openSignUp("admin");
+            }
+        });
 
         center.add(userLoginButton);
         center.add(userSignupButton);
@@ -98,31 +93,42 @@ public class StartFrame extends JFrame {
         center.add(adminSignupButton);
         main.add(center, BorderLayout.CENTER);
 
-        JLabel footer = new JLabel("BY     Ashar    Usman     Zarak     Faizan", SwingConstants.CENTER);
-        footer.setFont(new Font("Times New Roman", Font.ITALIC, 17));
+        JLabel footer = new JLabel("Faizan Ahmad, Ashar Sheraz, M.Usman Azeem, Zarak Khan", SwingConstants.CENTER);
+        footer.setFont(new Font("Arial", Font.ITALIC, 14));
         footer.setForeground(Color.GRAY);
+        footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0)); 
         main.add(footer, BorderLayout.SOUTH);
 
         setContentPane(main);
     }
 
     private JButton makeButton(String text) {
-
-        JButton button = new JButton(text);
-
-        button.setFont(new Font("Times New Roman", Font.PLAIN, 15));
-
+        // Using an anonymous inner class override to completely bypass OS look-and-feel painting bugs
+        JButton button = new JButton(text) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // Draw solid background color
+                g2.setColor(getBackground());
+                g2.fillRect(0, 0, getWidth(), getHeight());
+                g2.dispose();
+                // Let Swing handle text placement on top of our solid background
+                super.paintComponent(g);
+            }
+        };
+        
+        button.setFont(new Font("Arial", Font.BOLD, 16));
         button.setFocusPainted(false);
-
         button.setFocusable(false);
-
-        button.setBackground(new Color(230, 240, 255));
-
-        button.setForeground(Color.BLACK);
-        button.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(0, 102, 204), 2),
-            BorderFactory.createEmptyBorder(12, 0, 12, 0)
-        ));
+        
+        // This is critical: tells Swing not to overlay default native Windows themes over our colors
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
+        
+        button.setBackground(new Color(18, 54, 126));
+        button.setForeground(Color.WHITE);
+        button.setBorder(BorderFactory.createEmptyBorder(14, 0, 14, 0));
 
         return button;
     }

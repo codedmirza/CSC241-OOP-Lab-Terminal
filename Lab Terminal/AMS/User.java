@@ -27,13 +27,13 @@ public class User extends Account {
 
     // ---------- User-specific behaviour ----------
 
-    // Calculate fare = base fare + extra luggage charge (overloaded helper)
+    // Calculate fare = base fare + extra luggage charge (Updated baggage policy)
     public double calculateFare(Flight flight, double luggageWeight) {
         double base = flight.getFare();
         double extra = 0;
-        double allowed = 20.0;                    // 20 kg free
+        double allowed = 10.0;                    // 10 kg free now
         if (luggageWeight > allowed) {
-            extra = (luggageWeight - allowed) * 800;   // Rs 800 per extra kg
+            extra = (luggageWeight - allowed) * 100;   // Rs 100 per extra kg
         }
         return base + extra;
     }

@@ -8,7 +8,7 @@ public class Airport implements Serializable {
     private String name;
     private String city;
     private String country;
-    private String status;       // "Active" or "Inactive"
+    private String status;       // Strictly "Active" or "Inactive"
 
     public Airport() { }
 
@@ -18,7 +18,8 @@ public class Airport implements Serializable {
         this.name = name;
         this.city = city;
         this.country = country;
-        this.status = status;
+        // Data sanitization gate
+        setStatus(status);
     }
 
     // ---------- Getters / Setters ----------
@@ -26,16 +27,30 @@ public class Airport implements Serializable {
     public String getName()        { return name; }
     public String getCity()        { return city; }
     public String getCountry()     { return country; }
-    public String getStatus()      { return status; }
+    
+    public String getStatus() { 
+        // Graceful fallback fallback if legacy bad data exists
+        if (status == null || (!status.equals("Active") && !status.equals("Inactive"))) {
+            return "Inactive";
+        }
+        return status; 
+    }
+
+    public void setStatus(String status) { 
+        if (status != null && (status.equalsIgnoreCase("Active") || status.equals("Active"))) {
+            this.status = "Active";
+        } else {
+            this.status = "Inactive"; // Graceful fallback rule
+        }
+    }
 
     public void setName(String name)       { this.name = name; }
     public void setCity(String city)       { this.city = city; }
     public void setCountry(String country) { this.country = country; }
-    public void setStatus(String status)   { this.status = status; }
 
     @Override
     public String toString() {
         return airportCode + " - " + name + " (" + city + ", " + country
-             + ") [" + status + "]";
+             + ") [" + getStatus() + "]";
     }
 }
