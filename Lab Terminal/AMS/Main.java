@@ -20,6 +20,7 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             StartFrame startgui = new StartFrame(system);
             startgui.setVisible(true);
-        });
+        } );
     }
 }
+

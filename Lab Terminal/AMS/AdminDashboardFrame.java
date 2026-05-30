@@ -82,14 +82,16 @@ public class AdminDashboardFrame extends JFrame {
         main.add(tabs, BorderLayout.CENTER);
         setContentPane(main);
     }
-
-    // 1. Managing airports (adding, updating, deleting, listing)
+//_______________________________________________________________________________________________________________________________________________________________________________________________________________
+//_______________________________________________________________________________________________________________________________________________________________________________________________________________
+   
+// 1. Managing airports (adding, updating, deleting, listing)
     private JPanel AirportsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         String[] columns = {"Code", "Name", "City", "Country", "Status"};
-        DefaultTableModel model = new DefaultTableModel(columns, 0) { // Purpose: Data table me hold karna.
+        DefaultTableModel model = new DefaultTableModel(columns, 0) { // Purpose: Data table me hold kardtrfggygxna.
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         JTable table = new JTable(model); // data ko table me dikhana.
@@ -106,56 +108,113 @@ public class AdminDashboardFrame extends JFrame {
 
         JPanel buttons = new JPanel();
         JButton addBtn    = new JButton("Add Airport");
-        JButton updateBtn = new JButton("Update");
-        JButton deleteBtn = new JButton("Delete");
+        JButton updateBtn = new JButton("Update Airport");
+        JButton deleteBtn = new JButton("Delete Airport");
         JButton refreshBtn = new JButton("Refresh");
 
+        // Adding airports______________________________________________________
         addBtn.addActionListener(e -> {
-            JTextField code = new JTextField(), name = new JTextField(), city = new JTextField(), country = new JTextField();
+            while (true) {
+                JTextField code = new JTextField(), name = new JTextField(), city = new JTextField(), country = new JTextField();
 
-            Object[] msg = {"Code:", code, "Name:", name, "City:", city, "Country:", country};
-            int r = JOptionPane.showConfirmDialog(this, msg, "Add a new Airport", JOptionPane.OK_CANCEL_OPTION);
+                Object[] msg = {"Code(3 letters):", code, "Name:", name, "City:", city, "Country:", country};
+                int r = JOptionPane.showConfirmDialog(this, msg, "            Add a new Airport", JOptionPane.OK_CANCEL_OPTION);
 
-            if (r != JOptionPane.OK_OPTION) return;
+                if (r != JOptionPane.OK_OPTION) return;
+                
+                // ok krny ka bad hi sab validate and confirm hoga 
+                String cod = code.getText().trim().toUpperCase();
+                String nam = name.getText().trim();
+                String cit = city.getText().trim();
+                String coun = country.getText().trim();
 
-            String c = code.getText().trim().toUpperCase();
-            
-            if (c.isEmpty() || system.findAirport(c) != null) {
-                err("airport already exists"); return;
-            }
+                // validatiions
+                if (  cod.isEmpty() || cod.length() != 3 || !cod.equals(cod.toUpperCase())  ) {
+                    err("Code must be 3 uppercase letters (like  KHI, LHR)");
+                    continue;
+                }
 
-            system.addAirport(new Airport(c, name.getText(), city.getText(),country.getText(), "Active"));
-            FileHandler.saveSystem(system);
-            refresh.run();
-        });
+                if (system.findAirport(cod) != null) { 
+                    err("This airport already exists"); 
+                    continue;
+                }
 
+                if (nam.isEmpty() || cit.isEmpty() || coun.isEmpty()) {
+                    err("Name, City and Country cannot be empty, so enter again.");
+                    continue;
+                }
+                
+                String validation = "[a-zA-Z ]+";
+                if (!nam.matches(validation) || !cit.matches(validation) || !coun.matches(validation)) {
+                    err("Name, City and Country can only be letters, no numbers or anyelse");
+                    continue;
+                }
+
+                system.addAirport(new Airport(cod, nam, cit, coun, "Active"));
+                FileHandler.saveSystem(system);
+                refresh.run();
+
+                JOptionPane.showMessageDialog(this, "Airport added successfully!:)",  "Added!!", JOptionPane.INFORMATION_MESSAGE);
+                break; 
+        }   });   
+
+        // updating airports____________________________________________________
         updateBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select an airport first in the table."); return; }
 
             String c = (String) model.getValueAt(row, 0);
-
             Airport a = system.findAirport(c);
+                    if (a == null) {
+                        err("Airport not found.");
+                        refresh.run();
+                        return;
+                    }
+                
+            String nameValue = a.getName();
+            String cityValue = a.getCity();
+            String countryValue = a.getCountry();
+            String statusValue = a.getStatus();
 
-            JTextField name = new JTextField(a.getName()),
-                       city = new JTextField(a.getCity()),
-                       country = new JTextField(a.getCountry()),
-                       status = new JTextField(a.getStatus());
-                       
-            Object[] msg = {"Name:", name, "City:", city, "Country:", country, "Status:", status};
+            while (true) {
+                JTextField name = new JTextField(nameValue);
+                JTextField city = new JTextField(cityValue);
+                JTextField country = new JTextField(countryValue);
+                JTextField status = new JTextField(statusValue);
 
+                Object[] msg = {"Name:", name, "City:", city, "Country:", country, "Status:", status};
 
-            int r = JOptionPane.showConfirmDialog(this, msg, "Update Airport", JOptionPane.OK_CANCEL_OPTION);
-            if (r != JOptionPane.OK_OPTION) return;
+                int r = JOptionPane.showConfirmDialog(this, msg, "Update Airport", JOptionPane.OK_CANCEL_OPTION);
+                if (r != JOptionPane.OK_OPTION) return;
 
-            a.setName(name.getText());
-            a.setCity(city.getText());
-            a.setCountry(country.getText());
-            a.setStatus(status.getText());
-            FileHandler.saveSystem(system);
-            refresh.run();
+                nameValue = name.getText().trim();
+                cityValue = city.getText().trim();
+                countryValue = country.getText().trim();
+                statusValue = (String) status.getText();
+
+                if (nameValue.isEmpty() || cityValue.isEmpty() || countryValue.isEmpty()) {
+                    err("Name, City and Country can't be void. fill them again.");
+                    continue;
+                }
+                String textPattern = "[a-zA-Z ]+";
+                if (!nameValue.matches(textPattern) || !cityValue.matches(textPattern) || !countryValue.matches(textPattern)) {
+                    err("Name, City and Country must contain only alphabets and spaces.");
+                    continue;
+                }
+
+                a.setName(nameValue);
+                a.setCity(cityValue);
+                a.setCountry(countryValue);
+                a.setStatus(statusValue);
+
+                FileHandler.saveSystem(system);
+                refresh.run();
+                JOptionPane.showMessageDialog(this, "Airport updated! Check out ",  "Updated!!", JOptionPane.INFORMATION_MESSAGE);
+                break;
+            } 
         });
 
+        // deleting airports____________________________________________________
         deleteBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row < 0) { err("Select an airport first in the table."); return; }
@@ -198,8 +257,7 @@ public class AdminDashboardFrame extends JFrame {
         Runnable refresh = () -> {
             model.setRowCount(0);
             for (Aircraft a : system.getAircrafts()) {
-                model.addRow(new Object[]{ a.getAircraftId(), a.getModel(), a.getCapacity(), a.getAirlineName(), a.getMaintenanceStatus(),
-                    a.getAvailabilityStatus()
+                model.addRow(new Object[]{ a.getAircraftId(), a.getModel(), a.getCapacity(), a.getAirlineName(), a.getMaintenanceStatus(), a.getAvailabilityStatus()
                 });
             }
         };
@@ -209,42 +267,77 @@ public class AdminDashboardFrame extends JFrame {
         JButton updateBtn = new JButton("Update Status");
         JButton refreshBtn = new JButton("Refresh");
 
+        // Adding the aircraft__________________________________________________
         addBtn.addActionListener(e -> {
-            JTextField id = new JTextField(), model2 = new JTextField(),
-                       cap = new JTextField(), airline = new JTextField();
-            Object[] msg = {"Aircraft ID:", id, "Model:", model2,
-                            "Capacity:", cap, "Airline:", airline};
-            int r = JOptionPane.showConfirmDialog(this, msg, "Add Aircraft",
-                JOptionPane.OK_CANCEL_OPTION);
-            if (r != JOptionPane.OK_OPTION) return;
-            String aid = id.getText().trim();
-            if (aid.isEmpty() || system.findAircraft(aid) != null) {
-                err("Empty or duplicate ID."); return;
-            }
-            int cp;
-            try { cp = Integer.parseInt(cap.getText().trim()); }
-            catch (NumberFormatException ex) { err("Invalid capacity."); return; }
-            if (cp <= 0) { err("Capacity must be positive."); return; }
-            system.addAircraft(new Aircraft(aid, model2.getText(), cp,
-                                            airline.getText(), "Good", "Available"));
-            FileHandler.saveSystem(system);
-            refresh.run();
-        });
+            while (true) { 
+                JTextField id = new JTextField(), model2 = new JTextField(), cap = new JTextField(), airline = new JTextField();
+                
+                Object[] msg = {"Aircraft ID:", id, "Model:", model2, "Capacity:", cap, "Airline:", airline};
+                
+                int r = JOptionPane.showConfirmDialog(this, msg, "Add Aircraft", JOptionPane.OK_CANCEL_OPTION);
+                if (r != JOptionPane.OK_OPTION) return;
+
+                String aid = id.getText().trim();
+                String mod   = model2.getText().trim();
+                String airl = airline.getText().trim();
+
+                if (aid.isEmpty() || system.findAircraft(aid) != null) {
+                    err("Empty or duplicate ID issue. Enter again plz."); return;
+                }
+                if (mod.isEmpty() || airl.isEmpty()) {
+                    err("Model and airline cannot be empty, Enter again");
+                    return;
+                }
+                if (!mod.matches("[a-zA-Z0-9 -]+")) {
+                    err("Model can contain only letters, numbers, spaces and hyphen.");
+                    continue;
+                }
+                if (!airl.matches("[a-zA-Z ]+")) {
+                    err("Airline name can contain only alphabets, enter again.");
+                    continue;
+                }
+                int cp;
+                    try { 
+                        cp = Integer.parseInt(cap.getText().trim()); 
+                    } catch (NumberFormatException ex) 
+                        { err("Invalid capacity."); return; }
+                    
+                    if (cp <= 0 || cp > 900 ) { err("Capacity must be +VE and less than 900."); 
+                        continue; }
+                
+                // aircraft object creeation from calling constrcytor of aircraft class.
+                system.addAircraft(new Aircraft(aid, model2.getText(), cp, airline.getText(), "Good", "Available"));
+                FileHandler.saveSystem(system);
+                refresh.run();
+                JOptionPane.showMessageDialog(this, "Aircraft added", "Added!!", JOptionPane.INFORMATION_MESSAGE);
+                break;
+                }
+        }   );
+
+
         updateBtn.addActionListener(e -> {
             int row = table.getSelectedRow();
-            if (row < 0) { err("Select an aircraft."); return; }
-            String id = (String) model.getValueAt(row, 0);
+            if (row < 0) { err("Select an aircraft from the table to update it."); return; }
+
+            String id = (String) model.getValueAt(row, 0); // id yani row 0 
             Aircraft a = system.findAircraft(id);
+            if (a == null) {
+                err("Aircraft not found. Please refresh the table.");
+                refresh.run();
+                return;
+            }
             String[] options = {"Available", "Assigned", "Under Maintenance"};
-            String s = (String) JOptionPane.showInputDialog(this,
-                "New status:", "Update Status", JOptionPane.QUESTION_MESSAGE,
-                null, options, a.getAvailabilityStatus());
+            String s = (String) JOptionPane.showInputDialog(this, "New status:", "Update Status", JOptionPane.QUESTION_MESSAGE,
+                            null, options, a.getAvailabilityStatus());
+            
             if (s != null) {
                 a.setAvailabilityStatus(s);
                 FileHandler.saveSystem(system);
                 refresh.run();
             }
         });
+
+
         refreshBtn.addActionListener(e -> refresh.run());
 
         JPanel buttons = new JPanel();
@@ -571,8 +664,6 @@ public class AdminDashboardFrame extends JFrame {
     }
 
     // ============================================================
-    // REFUNDS TAB
-    // ============================================================
     private JPanel RefundsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -653,9 +744,6 @@ public class AdminDashboardFrame extends JFrame {
         return null;
     }
 
-    // ============================================================
-    // REPORTS TAB
-    // ============================================================
     private JPanel ReportsTab() {
         JPanel p = new JPanel(new BorderLayout(10, 10));
         p.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -676,8 +764,7 @@ public class AdminDashboardFrame extends JFrame {
         return p;
     }
 
-    private JButton reportButton(String label, JTextArea area,
-                                 java.util.function.Supplier<String> producer) {
+    private JButton reportButton(String label, JTextArea area,  java.util.function.Supplier<String> producer) {
         JButton b = new JButton(label);
         b.addActionListener(e -> area.setText(producer.get()));
         return b;
