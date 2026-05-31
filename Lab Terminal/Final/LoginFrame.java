@@ -91,29 +91,42 @@ public class LoginFrame extends JFrame {
         }
 
         Account acc = null; 
-        if (role.equals("admin")) {
-            Admin a = system.getAdmin();
-            if (a != null && a.login(u, p)) acc = a;
-        } 
-        else { // only user's loop is needed as there can be multiple users, but only one admin
-            for (User user : system.getUsers()) {
-                if (user.login(u, p)) { acc = user; break; } 
+    
+        try {
+            if (role.equals("admin")) {
+                Admin a = system.getAdmin();
+                if (a != null && a.login(u, p)) acc = a;
+            } 
+            else if  ("user".equalsIgnoreCase(role)) { 
+                
+                if (system.getUsers() == null || system.getUsers().isEmpty()) {
+                    JOptionPane.showMessageDialog(this,"No user account found. Please sign up first.","User Not Found", JOptionPane.WARNING_MESSAGE
+                    );
+                    return;
+                }
+
+                for (User user : system.getUsers()) {
+                    if (user != null && user.login(u, p)) { acc = user; break; } 
+                }
+            }
+
+            // if wrong ones
+            if (acc == null) {
+                JOptionPane.showMessageDialog(this, "Wrong username or password ! Enter again","Login Failed", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            // Success → open dashboard
+            if (acc instanceof Admin) {
+                new AdminDashboardFrame((Admin) acc, system, parent).setVisible(true);
+            } else {
+                new UserDashboardFrame((User) acc, system, parent).setVisible(true);
+            }
+            dispose(); // close login frame after opening dashboard
+        } catch (HeadlessException ex) {
+
+
             }
         }
-
-        // if wrong ones
-        if (acc == null) {
-            JOptionPane.showMessageDialog(this, "Wrong username or password ! Enter again","Login Failed", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        // Success → open dashboard
-        if (acc instanceof Admin) {
-            new AdminDashboardFrame((Admin) acc, system, parent).setVisible(true);
-        } else {
-            new UserDashboardFrame((User) acc, system, parent).setVisible(true);
-        }
-        dispose(); // close login frame after opening dashboard
-    }
 
     private void err(String msg) {
     JOptionPane.showMessageDialog(this, msg, "Validation Error", JOptionPane.ERROR_MESSAGE);

@@ -22,7 +22,12 @@ public abstract class Account extends Person {
 
     // ---------- Common login behaviour ----------
     public boolean login(String username, String password) {
-        return this.username.equals(username) && this.password.equals(password);
+        return this.username != null
+            && this.password != null
+            && username != null
+            && password != null
+            && this.username.equals(username)
+            && this.password.equals(password);
     }
 
     public void logout() {

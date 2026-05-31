@@ -59,7 +59,7 @@ public class StartFrame extends JFrame {
         center.add(subtitle);
 
             // USERS BUTTONS
-        JButton userLoginButton = makeButton("USER Login");
+        JButton userLoginButton = makeButton("User Login");
         userLoginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -67,7 +67,7 @@ public class StartFrame extends JFrame {
             }
         } );
       
-        JButton userSignupButton = makeButton("USER SignUp");
+        JButton userSignupButton = makeButton("User SignUp");
         userSignupButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -76,7 +76,7 @@ public class StartFrame extends JFrame {
             } );
             
             // ADMINS BUTTONS
-        JButton adminLoginButton = makeButton("ADMIN Login");
+        JButton adminLoginButton = makeButton("Admin Login");
         adminLoginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -84,7 +84,7 @@ public class StartFrame extends JFrame {
             }
         }  );
 
-        JButton adminSignupButton = makeButton("ADMIN SignUp");
+        JButton adminSignupButton = makeButton("Admin SignUp");
         adminSignupButton.addActionListener(new ActionListener() {
         @Override 
         public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -111,13 +111,9 @@ public class StartFrame extends JFrame {
         JButton button = new JButton(text);
 
         button.setFont(new Font("Times New Roman", Font.PLAIN, 15));
-
         button.setFocusPainted(false);
-
         button.setFocusable(false);
-
-        button.setBackground(new Color(230, 240, 255));
-
+        button.setBackground(new Color(0, 0, 139));
         button.setForeground(Color.BLACK);
         button.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(0, 102, 204), 2),
